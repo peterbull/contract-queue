@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 ipykernel = "^6.29.3"
+python-dotenv = "^1.0.1"
+requests = "^2.31.0"
+pydantic = "^2.6.3"
 
 
 [build-system]
