@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "contract-queue"
+version = "0.1.0"
+description = ""
+authors = ["LAPTOP-VCGCOL4V <petercbull@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+ipykernel = "^6.29.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
