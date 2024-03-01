@@ -12,6 +12,7 @@ python-dotenv = "^1.0.1"
 requests = "^2.31.0"
 pydantic = "^2.6.3"
 pandas = "^2.2.1"
+pymupdf = "^1.23.26"
 
 
 [build-system]
