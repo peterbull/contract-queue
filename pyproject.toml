@@ -15,6 +15,7 @@ pandas = "^2.2.1"
 pymupdf = "^1.23.26"
 python-magic = "^0.4.27"
 openpyxl = "^3.1.2"
+pendulum = "^3.0.0"
 
 
 [build-system]
