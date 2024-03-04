@@ -5,6 +5,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
+      - ./backups:/var/lib/postgres/backups
     ports:
       - "5432:5432"
     restart: always
