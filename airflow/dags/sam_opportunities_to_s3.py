@@ -1,3 +1,4 @@
+# Airflow 2.8.2
 import json
 import logging
 import os
@@ -6,6 +7,8 @@ import boto3
 import pendulum
 import requests
 from airflow.decorators import dag, task
+from airflow.operators.empty import EmptyOperator
+from botocore.exceptions import ClientError
 
 SAM_PUBLIC_API_KEY = os.environ.get("SAM_PUBLIC_API_KEY")
 S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
@@ -40,7 +43,9 @@ def ingest_opportunities_to_s3():
     previous_date = pendulum.now("utc").subtract(days=1).strftime("%Y%m%d")
     formatted_request_date = pendulum.parse(previous_date, strict=False).format("MM/DD/YYYY")
     base_url = "https://api.sam.gov/opportunities/v2/search"
+
     bucket_name = "sam-gov-opportunities"
+    file_name = f"daily-opportunity-posts/{previous_date}.json"
 
     api_params = {
         "api_key": SAM_PUBLIC_API_KEY,
@@ -50,6 +55,25 @@ def ingest_opportunities_to_s3():
         "limit": 1000,
         "offset": 0,
     }
+
+    @task.branch()
+    def check_existing_data(bucket_name, file_name):
+        s3_client = boto3.client(
+            "s3",
+            region_name=S3_REGION_NAME,
+            aws_access_key_id=S3_AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=S3_AWS_SECRET_ACCESS_KEY,
+        )
+        try:
+            s3_client.head_object(Bucket=bucket_name, Key=file_name)
+            logging.info(f"File {file_name} exists in bucket {bucket_name}")
+            return "end_dag"
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                logging.info(f"File {file_name} does not exist in bucket {bucket_name}")
+                return "get_new_opportunities"
+            else:
+                raise
 
     @task()
     def get_new_opportunities(base_url, api_params):
@@ -75,22 +99,27 @@ def ingest_opportunities_to_s3():
         return opportunities
 
     @task()
-    def opportunity_obj_to_s3(opportunities, bucket_name, previous_date):
-        json_data = json.dumps(opportunities)
-        bytes_data = json_data.encode("utf-8")
+    def opportunity_obj_to_s3(opportunities, file_name, bucket_name):
         s3_client = boto3.client(
             "s3",
             region_name=S3_REGION_NAME,
             aws_access_key_id=S3_AWS_ACCESS_KEY_ID,
             aws_secret_access_key=S3_AWS_SECRET_ACCESS_KEY,
         )
-        bucket_name = bucket_name
-        file_name = f"daily-opportunity-posts/{previous_date}.json"
+
+        json_data = json.dumps(opportunities)
+        bytes_data = json_data.encode("utf-8")
+
         s3_client.put_object(Bucket=bucket_name, Key=file_name, Body=bytes_data)
         logging.info(f"Successfully wrote to S3 bucket {bucket_name} with key {file_name}")
 
-    opportunities = get_new_opportunities(base_url, api_params)
-    opportunity_obj_to_s3(opportunities, bucket_name, previous_date)
+    end_dag = EmptyOperator(task_id="end_dag")
+    check_result = check_existing_data(bucket_name, file_name)
+    new_opportunities = get_new_opportunities(base_url, api_params)
+    stored_opportunities = opportunity_obj_to_s3(new_opportunities, file_name, bucket_name)
+
+    check_result >> [new_opportunities, end_dag]
+    new_opportunities >> stored_opportunities
 
 
-ingest_opportunities_to_s3()
+ingest_opportunities_to_s3_dag = ingest_opportunities_to_s3()
