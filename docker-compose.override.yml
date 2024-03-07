@@ -1,0 +1,15 @@
+services:
+  backend:
+    command: >
+      sh -c "python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 -m
+      uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 &
+      watchmedo shell-command --patterns='*.py' --recursive --command='pytest' /usr/src/app"
+    ports:
+      - "5678:5678"
+
+  airflow-worker:
+    command: >
+      bash -c "python -m debugpy --listen 0.0.0.0:5679 -m celery
+      -A airflow.executors.celery_executor:app worker"
+    ports:
+      - "5679:5679"

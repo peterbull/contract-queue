@@ -1,0 +1,40 @@
+# General
+**/.DS_Store
+**/node_modules
+**/__pycache__
+**/.env
+**/.git
+**/.gitignore
+**/.dockerignore
+
+# React-specific
+frontend/build
+frontend/.cache
+frontend/logs
+frontend/temp
+
+# FastAPI-specific
+backend/venv
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.Python
+backend/db.sqlite3
+backend/instance
+backend/.pytest_cache
+backend/.coverage
+backend/htmlcov
+backend/docs/_build
+
+# CeleryBeat-specific
+backend/celerybeat-*
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Notebooks
+**/nbs
+*.ipynb
+*.nnb

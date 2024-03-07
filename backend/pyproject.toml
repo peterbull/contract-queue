@@ -3,7 +3,6 @@ name = "contract-queue"
 version = "0.1.0"
 description = ""
 authors = ["LAPTOP-VCGCOL4V <petercbull@gmail.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
@@ -24,8 +23,11 @@ pypdf = "^4.0.2"
 psycopg2 = "^2.9.9"
 pgvector = "^0.2.5"
 sqlalchemy = ">=1.4.28,<2.0"
-apache-airflow = "^2.8.2"
-apache-airflow-providers-openai = "1.0.0"
+fastapi = "^0.110.0"
+watchdog = {extras = ["watchmedo"], version = "^3.0.0"}
+debugpy = "^1.8.1"
+pytest = "^7.4.4"
+uvicorn = "^0.24.0.post1"
 
 [build-system]
 requires = ["poetry-core"]
