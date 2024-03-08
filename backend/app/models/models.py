@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, create_engine
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -23,7 +23,7 @@ class Notice(Base):
     typeOfSetAsideDescription = Column(String)
     typeOfSetAside = Column(String)
     responseDeadLine = Column(DateTime)
-    naicsCode = Column(String)
+    naicsCode = Column(Integer)
     naicsCodes = Column(ARRAY(String))
     classificationCode = Column(String)
     active = Column(Boolean)
@@ -76,7 +76,7 @@ class PlaceOfPerformance(Base):
     state_name = Column(String)
     country_code = Column(String)
     country_name = Column(String)
-    notice = relationship("Notice", back_populates="place_of_performance", uselist=False)
+    notice = relationship("Notice", back_populates="place_of_performance", uselist=True)
 
 
 class Link(Base):
