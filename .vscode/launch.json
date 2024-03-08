@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Chrome against localhost client",
+            "request": "launch",
+            // "preLaunchTask": "npm: start",
+            "type": "pwa-chrome",
+            "url": "http://localhost:8501/",
+            "webRoot": "${workspaceFolder}/frontend",
+            "sourceMaps": true,
+            "skipFiles": []
+        },
+        {
+            "name": "Docker: Attach to FastAPI",
+            "type": "python",
+            "request": "attach",
+            "port": 5678,
+            "host": "localhost",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/backend/app",
+                    "remoteRoot": "/usr/src/app/app"
+                }
+            ]
+        },
+        {
+            "name": "Docker: Airflow Worker",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "port": 5679,
+                "host": "localhost",
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/airflow",
+                    "remoteRoot": "/opt/airflow"
+                }
+            ]
+        }
+    ]
+}
