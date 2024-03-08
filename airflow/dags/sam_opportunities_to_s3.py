@@ -80,9 +80,7 @@ def ingest_opportunities_to_s3(bucket_name, file_name):
         "offset": 0,
     }
 
-    @task.branch(
-        outlets=[daily_notices],
-    )
+    @task.branch()
     def check_existing_data(bucket_name, file_name):
         s3_client = boto3.client(
             "s3",
@@ -125,7 +123,7 @@ def ingest_opportunities_to_s3(bucket_name, file_name):
         return opportunities
 
     @task(
-        # outlets=[daily_notices],
+        outlets=[daily_notices],
     )
     def opportunity_obj_to_s3(opportunities, bucket_name, file_name):
         s3_client = boto3.client(
