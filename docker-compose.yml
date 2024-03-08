@@ -58,6 +58,20 @@ services:
       retries: 5
       start_period: 30s
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: frontend.dockerfile
+      args:
+        STREAMLIT_APP_BACKEND_URL: ${STREAMLIT_APP_BACKEND_URL}
+    env_file:
+      - .env
+    volumes:
+      - ./frontend:/usr/src/app
+    ports:
+      - "8501:8501"
+    command: streamlit run streamlit_app.py
+
   postgres:
     image: pgvector/pgvector:pg16
     environment:
