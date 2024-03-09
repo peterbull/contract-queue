@@ -1,5 +1,6 @@
 import datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
@@ -105,6 +106,7 @@ class NaicsCodes(Base):
     naicsCode = Column(Integer, unique=True)
     title = Column(String)
     description = Column(String)
+    description_embedding = Column(Vector(1536))
 
     notice = relationship("Notice", back_populates="naicsCode")
 

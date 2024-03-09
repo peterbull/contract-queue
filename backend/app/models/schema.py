@@ -58,6 +58,7 @@ class NaicsCodeBase(BaseModel):
     naicsCode: Optional[int]
     title: Optional[str]
     description: Optional[str]
+    description_embedding: Optional[List[float]]
 
 
 class NoticeBase(BaseModel):

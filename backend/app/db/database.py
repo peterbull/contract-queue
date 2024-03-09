@@ -50,9 +50,6 @@ def get_existing_entries(db, model, column):
 
 
 def create_new_entries(df, model, existing_entries, **kwargs):
-    df = df.drop_duplicates(
-        subset=kwargs["naicsCode"]
-    )  # Dropping index_item_descriptions for the time being
     return [
         model(**{key: row[value] for key, value in kwargs.items()})
         for _, row in df.iterrows()
@@ -63,9 +60,11 @@ def create_new_entries(df, model, existing_entries, **kwargs):
 def add_naics_code_table():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
-    csv_file_path = os.path.join(parent_dir, "data", "naics", "cleaned_combined_naics2022.csv")
+    parquet_file_path = os.path.join(
+        parent_dir, "data", "naics", "cleaned_combined_naics2022.parquet"
+    )
 
-    df = pd.read_csv(csv_file_path)
+    df = pd.read_parquet(parquet_file_path)
     with SessionLocal() as db:
         try:
             existing_naics_entries = get_existing_entries(db, NaicsCodes, NaicsCodes.naicsCode)
@@ -73,9 +72,10 @@ def add_naics_code_table():
                 df,
                 NaicsCodes,
                 existing_naics_entries,
-                naicsCode="naicscode",
+                naicsCode="naicsCode",
                 title="title",
                 description="description",
+                description_embedding="description_embedding",
             )
 
             if naics_entries_to_add:

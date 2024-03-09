@@ -29,6 +29,8 @@ pytest = "^7.4.4"
 uvicorn = "^0.24.0.post1"
 openai = "^1.13.3"
 instructor = "^0.6.4"
+pyarrow = "^15.0.1"
+fastparquet = "^2024.2.0"
 
 [build-system]
 requires = ["poetry-core"]
