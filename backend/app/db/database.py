@@ -6,7 +6,7 @@ import boto3
 import pandas as pd
 from app.core.config import get_app_settings
 from app.models.models import Base, NaicsCodes
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
@@ -37,6 +37,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def enable_vector_extension():
+    with SessionLocal() as session:
+        session.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        session.commit()
 
 
 def get_existing_entries(db, model, column):

@@ -1,12 +1,15 @@
 import os
 from typing import List
 
-from app.db.database import add_naics_code_table, create_tables, get_db
+from app.db.database import add_naics_code_table, create_tables, enable_vector_extension, get_db
 from app.models.models import Notice
 from app.models.schema import NoticeBase
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+
+# Enable vector dtypes for embeddings
+enable_vector_extension()
 
 create_tables()
 db = get_db()
@@ -14,6 +17,7 @@ app = FastAPI()
 
 # Add naics code table
 add_naics_code_table()
+
 
 allowed_origins = os.getenv("ALLOWED_ORIGINS").split(",")
 app.add_middleware(
