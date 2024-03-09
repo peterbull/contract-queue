@@ -188,7 +188,7 @@ def s3_opportunities_to_postgres(bucket_name, file_name):
                         state=office_address_data.get("state", None),
                     )
 
-                place_of_performance_data = notice_data.get("placeOfPerformance")
+                place_of_performance_data = notice_data.get("placeOfPerformance", {})
                 if place_of_performance_data:
                     place_of_performance = PlaceOfPerformance(
                         city_code=place_of_performance_data.get("city", {}).get("code", None),
