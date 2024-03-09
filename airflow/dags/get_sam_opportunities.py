@@ -12,6 +12,7 @@ from airflow.operators.empty import EmptyOperator
 from app.core.config import get_app_settings
 from app.models.models import (
     Link,
+    NaicsCodes,
     Notice,
     OfficeAddress,
     PlaceOfPerformance,
@@ -63,6 +64,7 @@ def parse_date(iso_str):
     start_date=start_date,
     schedule="@daily",
     tags=["produces", "dataset-scheduled"],
+    is_paused_upon_creation=False,
 )
 def ingest_opportunities_to_s3(bucket_name, file_name):
 
@@ -155,6 +157,7 @@ ingest_opportunities_to_s3_dag = ingest_opportunities_to_s3(bucket_name, file_na
     start_date=start_date,
     tags=["consumes", "dataset-triggered"],
     schedule=[daily_notices],
+    is_paused_upon_creation=False,
 )
 def s3_opportunities_to_postgres(bucket_name, file_name):
     @task()
@@ -179,15 +182,17 @@ def s3_opportunities_to_postgres(bucket_name, file_name):
                 if exists:
                     continue  # skipping the loop if the noticeId is already in the db
 
+                office_address = None
                 office_address_data = notice_data.get("officeAddress", {})
                 if office_address_data:
                     office_address = OfficeAddress(
                         zipcode=office_address_data.get("zipcode", None),
                         city=office_address_data.get("city", None),
-                        countryCode=office_address_data.get("countryCode, None"),
+                        countryCode=office_address_data.get("countryCode", None),
                         state=office_address_data.get("state", None),
                     )
 
+                place_of_performance = None
                 place_of_performance_data = notice_data.get("placeOfPerformance", {})
                 if place_of_performance_data:
                     place_of_performance = PlaceOfPerformance(
@@ -213,7 +218,7 @@ def s3_opportunities_to_postgres(bucket_name, file_name):
                     typeOfSetAsideDescription=notice_data.get("typeOfSetAsideDescription"),
                     typeOfSetAside=notice_data.get("typeOfSetAside"),
                     responseDeadLine=parse_date(notice_data.get("responseDeadLine")),
-                    naicsCode=notice_data.get("naicsCode"),
+                    # naicsCode=notice_data.get("naicsCode"),
                     naicsCodes=notice_data.get("naicsCodes"),
                     classificationCode=notice_data.get("classificationCode"),
                     active=notice_data.get("active") == "Yes",
@@ -224,6 +229,21 @@ def s3_opportunities_to_postgres(bucket_name, file_name):
                     office_address=office_address,
                     place_of_performance=place_of_performance,
                 )
+
+                naics_code_value = notice_data.get("naicsCode")
+                existing_naics_code = (
+                    session.query(NaicsCodes).filter_by(naicsCode=naics_code_value).first()
+                )
+
+                if existing_naics_code:
+                    # If exists, use the existing NaicsCodes instance
+                    notice.naicsCode = existing_naics_code
+                else:
+                    # Otherwise, create a new NaicsCodes instance
+                    new_naics_code = NaicsCodes(naicsCode=naics_code_value)
+                    session.add(new_naics_code)
+                    session.flush()
+                    notice.naicsCode = new_naics_code
 
                 poc_data_list = notice_data.get("pointOfContact", [])
                 if poc_data_list:

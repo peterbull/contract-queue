@@ -53,6 +53,13 @@ class ResourceLinkBase(BaseModel):
     url: Optional[str]
 
 
+class NaicsCodeBase(BaseModel):
+    id: Optional[int]
+    naicsCode: Optional[int]
+    title: Optional[str]
+    description: Optional[str]
+
+
 class NoticeBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -69,7 +76,7 @@ class NoticeBase(BaseModel):
     typeOfSetAsideDescription: Optional[str]
     typeOfSetAside: Optional[str]
     responseDeadLine: Optional[datetime]
-    naicsCode: Optional[int]
+    naicsCode: Optional[NaicsCodeBase]
     naicsCodes: Optional[List[str]]
     classificationCode: Optional[str]
     active: Optional[bool]
