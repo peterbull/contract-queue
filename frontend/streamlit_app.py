@@ -16,7 +16,14 @@ if st.button("Fetch Data"):
     else:
         st.write("Failed to fetch")
 
-naics_input = st.number_input("Enter a NAICS code: ", value=237110)
+res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/naicscodes")
+if res.status_code == 200:
+    unique_naics_codes = res.json()
+else:
+    unique_naics_codes = []
+
+
+naics_input = st.selectbox("Enter a NAICS code: ", unique_naics_codes, index=0)
 if st.button("Get Data By NAICS Code"):
     res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/notices/{naics_input}")
 
