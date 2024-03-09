@@ -1,5 +1,5 @@
 # Contract Queue
 
-An easier top way to parse sam.gov opportunites
+RFP(Request for Proposal) notice recommendation webapp using vector stores, LLMs, and airflow.
 
 Currently a work-in-progress
