@@ -23,7 +23,10 @@ class Notice(Base):
     typeOfSetAsideDescription = Column(String)
     typeOfSetAside = Column(String)
     responseDeadLine = Column(DateTime)
-    naicsCode = Column(Integer)
+
+    naics_code_id = Column(Integer, ForeignKey("naics_codes.id"))
+    naicsCode = relationship("NaicsCodes", back_populates="notice")
+
     naicsCodes = Column(ARRAY(String))
     classificationCode = Column(String)
     active = Column(Boolean)
@@ -94,3 +97,21 @@ class ResourceLink(Base):
     url = Column(String)
     notice_id = Column(String, ForeignKey("notices.id"))
     notice = relationship("Notice", back_populates="resource_links")
+
+
+class NaicsCodes(Base):
+    __tablename__ = "naics_codes"
+    id = Column(Integer, primary_key=True, index=True)
+    naicsCode = Column(Integer, unique=True)
+    title = Column(String)
+    description = Column(String)
+
+    notice = relationship("Notice", back_populates="naicsCode")
+
+
+# class IndexItemDescriptions(Base):
+#     __tablename__ = "index_item_descriptions"
+#     id = Column(Integer, primary_key=True, index=True)
+#     index_item_description = Column(String)
+#     naics_code_id = Column(Integer, ForeignKey("naics_codes.id"))
+#     naics_code = relationship("NaicsCodes", back_populates="index_item_descriptions")
