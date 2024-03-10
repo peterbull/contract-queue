@@ -12,6 +12,7 @@ from app.models.models import Notice
 from app.models.schema import NoticeBase
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from openai import AsyncOpenAI, OpenAI
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -22,6 +23,8 @@ enable_vector_extension()
 create_tables()
 db = get_async_db()
 app = FastAPI()
+client = OpenAI()
+async_client = AsyncOpenAI()
 
 # Add naics code table
 add_naics_code_table()
@@ -50,8 +53,11 @@ async def get_all_naics_codes(db: AsyncSession = Depends(get_async_db)):
     return [code.naicsCode.naicsCode for code in naics_codes]
 
 
-# @app.get("/naicscodes/search")
-# async def search_naics_codes(query: str):
+@app.get("/naicscodes/search")
+async def search_naics_codes(query: str):
+    res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
+    query_embed = res.data[0].embedding
+    return query_embed
 
 
 @app.get("/notices/{naics_code}", response_model=List[NoticeBase])

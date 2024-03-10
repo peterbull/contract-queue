@@ -33,3 +33,16 @@ if st.button("Get Data By NAICS Code"):
         st.table(df)
     else:
         st.write("Failed to fetch")
+
+
+naics_query = st.text_input("Enter an industry, skill, or other keyword")
+
+if st.button("Search"):
+    res = requests.get(
+        f"{STREAMLIT_APP_BACKEND_URL}/naicscodes/search", params={"query": naics_query}
+    )
+
+    if res.status_code == 200:
+        st.write(f"{res.json()}")
+    else:
+        st.write(f"Error: {res.status_code}")
