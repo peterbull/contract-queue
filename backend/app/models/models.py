@@ -46,7 +46,7 @@ class Notice(Base):
     )
 
     points_of_contact = relationship("PointOfContact", back_populates="notice", lazy="selectin")
-    links = relationship("Link", back_populates="notice")
+    links = relationship("Link", back_populates="notice", lazy="selectin")
     resource_links = relationship("ResourceLink", back_populates="notice", lazy="selectin")
 
 
