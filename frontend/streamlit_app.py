@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
+st.set_page_config(layout="wide")
 STREAMLIT_APP_BACKEND_URL = os.environ.get("STREAMLIT_APP_BACKEND_URL")
 
 st.title("Contract Queue Frontend")
@@ -43,6 +44,8 @@ if st.button("Search"):
     )
 
     if res.status_code == 200:
-        st.write(f"{res.json()}")
+        data = res.json()
+        df = pd.DataFrame(data)
+        st.table(df)
     else:
         st.write(f"Error: {res.status_code}")
