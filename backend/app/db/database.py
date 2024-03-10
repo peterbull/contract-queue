@@ -4,10 +4,11 @@ import os
 
 import boto3
 import pandas as pd
-from app.core.config import get_app_settings
+from app.core.config import get_app_settings, get_async_app_settings
 from app.models.models import Base, NaicsCodes
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
@@ -15,9 +16,13 @@ S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
 S3_REGION_NAME = os.environ.get("S3_REGION_NAME")
 
 DATABASE_URL = get_app_settings().database_conn_string
+ASYNC_DATABASE_URL = get_async_app_settings().database_conn_string
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+async_engine = create_async_engine(ASYNC_DATABASE_URL)
+AsyncSessionLocal = sessionmaker(async_engine, expire_on_commit=False, class_=AsyncSession)
 
 s3_client = boto3.client(
     "s3",
@@ -37,6 +42,11 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+async def get_async_db():
+    async with AsyncSessionLocal() as session:
+        yield session
 
 
 def enable_vector_extension():

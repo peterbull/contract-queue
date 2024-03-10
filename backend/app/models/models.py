@@ -26,7 +26,7 @@ class Notice(Base):
     responseDeadLine = Column(DateTime)
 
     naics_code_id = Column(Integer, ForeignKey("naics_codes.id"))
-    naicsCode = relationship("NaicsCodes", back_populates="notice")
+    naicsCode = relationship("NaicsCodes", back_populates="notice", lazy="selectin")
 
     naicsCodes = Column(ARRAY(String))
     classificationCode = Column(String)
@@ -38,14 +38,16 @@ class Notice(Base):
     uiLink = Column(String)
 
     office_address_id = Column(Integer, ForeignKey("office_addresses.id"))
-    office_address = relationship("OfficeAddress", back_populates="notice")
+    office_address = relationship("OfficeAddress", back_populates="notice", lazy="selectin")
 
     place_of_performance_id = Column(Integer, ForeignKey("places_of_performance.id"))
-    place_of_performance = relationship("PlaceOfPerformance", back_populates="notice")
+    place_of_performance = relationship(
+        "PlaceOfPerformance", back_populates="notice", lazy="selectin"
+    )
 
-    points_of_contact = relationship("PointOfContact", back_populates="notice")
+    points_of_contact = relationship("PointOfContact", back_populates="notice", lazy="selectin")
     links = relationship("Link", back_populates="notice")
-    resource_links = relationship("ResourceLink", back_populates="notice")
+    resource_links = relationship("ResourceLink", back_populates="notice", lazy="selectin")
 
 
 class PointOfContact(Base):
@@ -58,7 +60,7 @@ class PointOfContact(Base):
     title = Column(String)
     fullName = Column(String)
     notice_id = Column(String, ForeignKey("notices.id"))
-    notice = relationship("Notice", back_populates="points_of_contact")
+    notice = relationship("Notice", back_populates="points_of_contact", lazy="selectin")
 
 
 class OfficeAddress(Base):
@@ -68,7 +70,12 @@ class OfficeAddress(Base):
     city = Column(String)
     countryCode = Column(String)
     state = Column(String)
-    notice = relationship("Notice", back_populates="office_address", uselist=False)
+    notice = relationship(
+        "Notice",
+        back_populates="office_address",
+        uselist=False,
+        lazy="selectin",
+    )
 
 
 class PlaceOfPerformance(Base):
@@ -80,7 +87,12 @@ class PlaceOfPerformance(Base):
     state_name = Column(String)
     country_code = Column(String)
     country_name = Column(String)
-    notice = relationship("Notice", back_populates="place_of_performance", uselist=True)
+    notice = relationship(
+        "Notice",
+        back_populates="place_of_performance",
+        uselist=True,
+        lazy="selectin",
+    )
 
 
 class Link(Base):
@@ -89,7 +101,7 @@ class Link(Base):
     rel = Column(String)
     href = Column(String)
     notice_id = Column(String, ForeignKey("notices.id"))
-    notice = relationship("Notice", back_populates="links")
+    notice = relationship("Notice", back_populates="links", lazy="selectin")
 
 
 class ResourceLink(Base):
@@ -97,7 +109,7 @@ class ResourceLink(Base):
     id = Column(Integer, primary_key=True, index=True)
     url = Column(String)
     notice_id = Column(String, ForeignKey("notices.id"))
-    notice = relationship("Notice", back_populates="resource_links")
+    notice = relationship("Notice", back_populates="resource_links", lazy="selectin")
 
 
 class NaicsCodes(Base):
@@ -108,7 +120,7 @@ class NaicsCodes(Base):
     description = Column(String)
     description_embedding = Column(Vector(1536))
 
-    notice = relationship("Notice", back_populates="naicsCode")
+    notice = relationship("Notice", back_populates="naicsCode", lazy="selectin")
 
 
 # class IndexItemDescriptions(Base):

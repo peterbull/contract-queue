@@ -31,6 +31,7 @@ openai = "^1.13.3"
 instructor = "^0.6.4"
 pyarrow = "^15.0.1"
 fastparquet = "^2024.2.0"
+asyncpg = "^0.29.0"
 
 [build-system]
 requires = ["poetry-core"]
