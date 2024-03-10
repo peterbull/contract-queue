@@ -53,13 +53,16 @@ class ResourceLinkBase(BaseModel):
     url: Optional[str]
 
 
-class NaicsCodeBase(BaseModel):
+class NaicsCodeSimple(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: Optional[int]
     naicsCode: Optional[int]
     title: Optional[str]
     description: Optional[str]
+
+
+class NaicsCodeBase(NaicsCodeSimple):
     description_embedding: Optional[List[float]]
 
 
