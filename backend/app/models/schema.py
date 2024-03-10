@@ -82,7 +82,7 @@ class NoticeBase(BaseModel):
     typeOfSetAsideDescription: Optional[str]
     typeOfSetAside: Optional[str]
     responseDeadLine: Optional[datetime]
-    naicsCode: Optional[NaicsCodeBase]
+    naicsCode: Optional[NaicsCodeSimple]
     naicsCodes: Optional[List[str]]
     classificationCode: Optional[str]
     active: Optional[bool]

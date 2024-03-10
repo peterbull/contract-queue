@@ -26,7 +26,7 @@ else:
 
 naics_input = st.selectbox("Enter a NAICS code: ", unique_naics_codes, index=0)
 if st.button("Get Data By NAICS Code"):
-    res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/notices/{naics_input}")
+    res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/notices/naicscode/{naics_input}")
 
     if res.status_code == 200:
         data = res.json()

@@ -67,7 +67,7 @@ async def search_naics_codes(query: str, db: AsyncSession = Depends(get_async_db
     return [NaicsCodeSimple.model_validate(code) for code in codes]
 
 
-@app.get("/notices/{naics_code}", response_model=List[NoticeBase])
+@app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])
 async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends(get_async_db)):
     stmt = select(Notice).where(Notice.naicsCode.has(naicsCode=naics_code))
     result = await db.execute(stmt)
