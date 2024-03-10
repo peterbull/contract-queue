@@ -54,9 +54,11 @@ async def get_all_naics_codes(db: AsyncSession = Depends(get_async_db)):
 # async def search_naics_codes(query: str):
 
 
-# @app.get("/notices/{naics_code}", response_model=List[NoticeBase])
-# async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends(get_async_db)):
-#     notices = await db.query(Notice).filter(Notice.naicsCode == naics_code).all()
-#     if not notices:
-#         raise HTTPException(status_code=404, detail="No notices found")
-#     return [NoticeBase.model_validate(notice) for notice in notices]
+@app.get("/notices/{naics_code}", response_model=List[NoticeBase])
+async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = select(Notice).where(Notice.naicsCode.has(naicsCode=naics_code))
+    result = await db.execute(stmt)
+    notices = result.scalars().all()
+    if not notices:
+        raise HTTPException(status_code=404, detail="No notices found")
+    return [NoticeBase.model_validate(notice) for notice in notices]
