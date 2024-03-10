@@ -13,3 +13,9 @@ services:
       -A airflow.executors.celery_executor:app worker"
     ports:
       - "5679:5679"
+
+  frontend:
+    command: >
+      bash -c "python -m debugpy --listen 0.0.0.0:5680 -m streamlit run streamlit_app.py"
+    ports:
+      - "5680:5680"
