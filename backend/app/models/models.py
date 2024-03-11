@@ -108,6 +108,7 @@ class ResourceLink(Base):
     __tablename__ = "resource_links"
     id = Column(Integer, primary_key=True, index=True)
     url = Column(String)
+    text = Column(String)
     notice_id = Column(String, ForeignKey("notices.id"))
     notice = relationship("Notice", back_populates="resource_links", lazy="selectin")
 

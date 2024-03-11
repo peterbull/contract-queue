@@ -51,6 +51,7 @@ class ResourceLinkBase(BaseModel):
 
     id: Optional[int]
     url: Optional[str]
+    text: Optional[str]
 
 
 class NaicsCodeSimple(BaseModel):
