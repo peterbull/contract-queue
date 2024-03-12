@@ -277,7 +277,7 @@ def s3_opportunities_to_postgres(bucket_name, file_name):
                 notices_added += 1
 
             session.commit()
-            logging.info(f"Added {notices_added} notices to datbase.")
+            logging.info(f"Added {notices_added} notices to database.")
 
     s3_response = get_opportunities_from_s3(bucket_name, file_name)
     commit_new_opportunities = commit_new_opportunities_to_postgres(s3_response)
