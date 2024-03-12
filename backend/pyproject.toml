@@ -33,6 +33,7 @@ pyarrow = "^15.0.1"
 fastparquet = "^2024.2.0"
 asyncpg = "^0.29.0"
 textract = "^1.6.5"
+tqdm = "^4.66.2"
 
 [build-system]
 requires = ["poetry-core"]
