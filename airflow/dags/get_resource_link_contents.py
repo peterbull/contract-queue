@@ -131,7 +131,7 @@ def get_resource_link_contents():
                 f"Error uncaught when trying to parse file {file_name}. Giving up and returning an empty string. {e}",
                 exc_info=True,
             )
-            text = ""
+            text = "unparsable"
 
         return text
 
@@ -147,52 +147,54 @@ def get_resource_link_contents():
             results = session.execute(stmt).scalars().all()
             return [ResourceLinkBase.model_validate(result).dict() for result in results]
 
-        # @task()
-        # def parse_text_and_commit_to_db(resource_links: dict, max_byte_size: int = 3000000):
-        #     for resource_link in tqdm(resource_links):
-        #         res = requests.get(resource_link.get("url"))
-        #         file_name = get_file_name(res)
-        #         file_size = get_file_size(res)
-        #         logging.info(f"Name: {file_name}")
-        #         logging.info(f"Size: {file_size}")
-        #         if file_size > max_byte_size:
-        #             logging.info("File size exceeds threshold and will be skipped")
-        #             continue
-        #         prefix, suffix = os.path.splitext(file_name)
-        #         suffix = "." + suffix
-        #         with tempfile.NamedTemporaryFile(prefix=prefix, suffix=suffix, delete=False) as tmp:
-        #             tmp.write(res.content)
-        #             tmp.flush()
-        #             temp_path = tmp.name
-        #             text = get_doc_text(temp_path, rm=True)
-        #             with SessionLocal() as session:
-        #                 if text:
-        #                     # clean null characters before committing
-        #                     text = text.replace("\x00", "\uFFFD")
-        #                     stmt = (
-        #                         update(ResourceLink)
-        #                         .where(ResourceLink.id == resource_link["id"])
-        #                         .values(text=text)
-        #                     )
-        #                     session.execute(stmt)
-        #                     session.commit()
-        #                 else:
-        #                     stmt = (
-        #                         update(ResourceLink)
-        #                         .where(ResourceLink.id == resource_link["id"])
-        #                         .values(text="unparsable")
-        #                     )
-        #                     session.execute(stmt)
-        #                     session.commit()
+    @task()
+    def parse_text_and_commit_to_db(resource_links: dict, max_byte_size: int = 3000000):
+        for resource_link in tqdm(resource_links):
+            res = requests.get(resource_link.get("url"))
+            file_name = get_file_name(res)
+            file_size = get_file_size(res)
+            logging.info(f"Name: {file_name}")
+            logging.info(f"Size: {file_size}")
+            if file_size > max_byte_size:
+                logging.info("File size exceeds threshold and will be skipped")
+                with SessionLocal() as session:
+                    stmt = (
+                        update(ResourceLink)
+                        .where(ResourceLink.id == resource_link["id"])
+                        .values(text="unparsable")
+                    )
+                    session.execute(stmt)
+                    session.commit()
+                continue
+            prefix, suffix = os.path.splitext(file_name)
+            suffix = "." + suffix
+            with tempfile.NamedTemporaryFile(prefix=prefix, suffix=suffix, delete=False) as tmp:
+                tmp.write(res.content)
+                tmp.flush()
+                temp_path = tmp.name
+                text = get_doc_text(temp_path, rm=True)
+                with SessionLocal() as session:
+                    if text:
+                        # clean null characters before committing
+                        text = text.replace("\x00", "\uFFFD")
+                        stmt = (
+                            update(ResourceLink)
+                            .where(ResourceLink.id == resource_link["id"])
+                            .values(text=text)
+                        )
+                        session.execute(stmt)
+                        session.commit()
+                    else:
+                        stmt = (
+                            update(ResourceLink)
+                            .where(ResourceLink.id == resource_link["id"])
+                            .values(text="unparsable")
+                        )
+                        session.execute(stmt)
+                        session.commit()
 
     new_resource_links = get_unparsed_resource_links(20)
-
-    #     parse_text_and_commit_to_db(new_resource_links)
-    @task
-    def print_hello():
-        print("Hello, World!")
-
-    print_hello_task = print_hello()
+    parse_text_and_commit_to_db(new_resource_links)
 
 
 get_resource_link_contents_dag = get_resource_link_contents()
