@@ -46,19 +46,50 @@ default_args = {
 @dag(
     catchup=False,
     start_date=start_date,
-    # schedule="0 5 * * *",
-    schedule=None,
-    is_paused_upon_creation=True,
+    schedule="0 6 * * *",
+    # schedule=None,
+    is_paused_upon_creation=False,
 )
 def get_resource_link_contents():
-
     def get_file_name(res):
-        file_name = res.headers.get("Content-Disposition").split("filename=")[1].strip('"')
-        return file_name
+        """
+        Extracts the file name from the 'Content-Disposition' header of the given response object.
+
+        Args:
+            res (Response): The response object containing the 'Content-Disposition' header.
+
+        Returns:
+            str: The extracted file name.
+
+        Raises:
+            ValueError: If 'Content-Disposition' header does not exist or does not contain 'filename='.
+        """
+        content_disposition = res.headers.get("Content-Disposition")
+        if content_disposition and "filename=" in content_disposition:
+            file_name = content_disposition.split("filename=")[1].strip('"')
+            return file_name
+        else:
+            raise ValueError("Invalid 'Content-Disposition' header.")
 
     def get_file_size(res):
-        file_size = res.headers.get("Content-Length")
-        return int(file_size)
+        """
+        Get the file size from the response headers.
+
+        Args:
+            res (Response): The response object containing the headers.
+
+        Returns:
+            int: The file size in bytes.
+
+        Raises:
+            ValueError: If the 'Content-Length' header is missing or invalid.
+        """
+        content_length = res.headers.get("Content-Length")
+        if content_length:
+            file_size = res.headers.get("Content-Length")
+            return int(file_size)
+        else:
+            raise ValueError("Invalid 'Content-Length' header.")
 
     def get_doc_text(file_name, rm=True):
         """Textract a doc given its path
@@ -137,6 +168,15 @@ def get_resource_link_contents():
 
     @task()
     def get_unparsed_resource_links(batch_size: Optional[int] = None):
+        """
+        Retrieves a batch of unparsed resource links from the database.
+
+        Args:
+            batch_size (Optional[int]): The number of resource links to retrieve in a batch. Defaults to None.
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries representing the retrieved resource links.
+        """
         with SessionLocal() as session:
             subquery = select(ResourceLink.notice_id).distinct()
             stmt = (
@@ -149,6 +189,16 @@ def get_resource_link_contents():
 
     @task()
     def parse_text_and_commit_to_db(resource_links: dict, max_byte_size: int = 3000000):
+        """
+        Parses the text content of resource links and commits the parsed text to the database.
+
+        Args:
+            resource_links (dict): A dictionary containing resource links.
+            max_byte_size (int, optional): The maximum allowed file size in bytes. Defaults to 3000000.
+
+        Returns:
+            None
+        """
         for resource_link in tqdm(resource_links):
             res = requests.get(resource_link.get("url"))
             file_name = get_file_name(res)
@@ -193,7 +243,7 @@ def get_resource_link_contents():
                         session.execute(stmt)
                         session.commit()
 
-    new_resource_links = get_unparsed_resource_links(20)
+    new_resource_links = get_unparsed_resource_links()
     parse_text_and_commit_to_db(new_resource_links)
 
 
