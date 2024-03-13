@@ -35,6 +35,7 @@ asyncpg = "^0.29.0"
 textract = "^1.6.5"
 tqdm = "^4.66.2"
 anthropic = "^0.19.2"
+poetry-plugin-export = "^1.6.0"
 
 [build-system]
 requires = ["poetry-core"]
