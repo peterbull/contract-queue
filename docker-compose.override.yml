@@ -10,7 +10,7 @@ services:
   airflow-worker:
     command: >
       bash -c "python -m debugpy --listen 0.0.0.0:5679 -m celery
-      -A airflow.executors.celery_executor:app worker"
+      -A airflow.executors.celery_executor:app worker -E"
     ports:
       - "5679:5679"
 
