@@ -4,7 +4,9 @@ FROM apache/airflow:2.8.2-python3.10
 USER root
 
 # Install and check for correct install with pthyon
-RUN apt-get update && apt-get install -y python3-pip
+RUN apt-get update && apt-get install -y python3-pip \
+    libxml2-dev libxslt1-dev antiword unrtf poppler-utils tesseract-ocr \
+    flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig libpulse-dev
 
 # Install additional dependencies for project
 
