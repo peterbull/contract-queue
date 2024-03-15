@@ -8,6 +8,7 @@ from zipfile import BadZipfile
 import pendulum
 import requests
 import textract
+import tiktoken
 from airflow.decorators import dag, task
 from app.models.models import (
     Link,
@@ -90,6 +91,11 @@ def get_resource_link_contents():
             return int(file_size)
         else:
             raise ValueError("Invalid 'Content-Length' header.")
+
+    def num_tokens_in_corpus(input: str, encoding_name: str = "gpt-3.5-turbo") -> int:
+        encoding = tiktoken.encoding_for_model(encoding_name)
+        num_tokens = len(encoding.encode(input))
+        return num_tokens
 
     def get_doc_text(file_name, rm=True):
         """Textract a doc given its path
@@ -211,26 +217,50 @@ def get_resource_link_contents():
                     stmt = (
                         update(ResourceLink)
                         .where(ResourceLink.id == resource_link["id"])
-                        .values(text="unparsable")
+                        .values(
+                            text="unparsable",
+                            file_name=file_name,
+                            file_size=file_size,
+                        )
                     )
                     session.execute(stmt)
                     session.commit()
                 continue
             prefix, suffix = os.path.splitext(file_name)
             suffix = "." + suffix
+            # Check for specific adobe decoding error
+            adobe_err = "If this message is not eventually replaced by the proper contents of the document, your PDF"
             with tempfile.NamedTemporaryFile(prefix=prefix, suffix=suffix, delete=False) as tmp:
                 tmp.write(res.content)
                 tmp.flush()
                 temp_path = tmp.name
                 text = get_doc_text(temp_path, rm=True)
                 with SessionLocal() as session:
-                    if text:
-                        # clean null characters before committing
-                        text = text.replace("\x00", "\uFFFD")
+                    if text and adobe_err in text:
                         stmt = (
                             update(ResourceLink)
                             .where(ResourceLink.id == resource_link["id"])
-                            .values(text=text)
+                            .values(
+                                text="adobe-error",
+                                file_name=file_name,
+                                file_size=file_size,
+                            )
+                        )
+                        session.execute(stmt)
+                        session.commit()
+                    elif text:
+                        # clean null characters before committing
+                        text = text.replace("\x00", "\uFFFD")
+                        file_tokens = num_tokens_in_corpus(text)
+                        stmt = (
+                            update(ResourceLink)
+                            .where(ResourceLink.id == resource_link["id"])
+                            .values(
+                                text=text,
+                                file_name=file_name,
+                                file_size=file_size,
+                                file_tokens=file_tokens,
+                            )
                         )
                         session.execute(stmt)
                         session.commit()
@@ -238,12 +268,16 @@ def get_resource_link_contents():
                         stmt = (
                             update(ResourceLink)
                             .where(ResourceLink.id == resource_link["id"])
-                            .values(text="unparsable")
+                            .values(
+                                text="unparsable",
+                                file_name=file_name,
+                                file_size=file_size,
+                            )
                         )
                         session.execute(stmt)
                         session.commit()
 
-    new_resource_links = get_unparsed_resource_links()
+    new_resource_links = get_unparsed_resource_links(batch_size=20)
     parse_text_and_commit_to_db(new_resource_links)
 
 
