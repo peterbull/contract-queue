@@ -230,18 +230,20 @@ def get_resource_link_contents():
             suffix = "." + suffix
             # Check for specific adobe decoding error
             adobe_err = "If this message is not eventually replaced by the proper contents of the document, your PDF"
+            encoding_err = "ÿ"
             with tempfile.NamedTemporaryFile(prefix=prefix, suffix=suffix, delete=False) as tmp:
                 tmp.write(res.content)
                 tmp.flush()
                 temp_path = tmp.name
                 text = get_doc_text(temp_path, rm=True)
                 with SessionLocal() as session:
-                    if text and adobe_err in text:
+                    if text and (adobe_err in text or encoding_err in text):
+                        err_message = "adobe-error" if adobe_err in text else "encoding-error"
                         stmt = (
                             update(ResourceLink)
                             .where(ResourceLink.id == resource_link["id"])
                             .values(
-                                text="adobe-error",
+                                text=err_message,
                                 file_name=file_name,
                                 file_size=file_size,
                             )
@@ -277,7 +279,7 @@ def get_resource_link_contents():
                         session.execute(stmt)
                         session.commit()
 
-    new_resource_links = get_unparsed_resource_links(batch_size=20)
+    new_resource_links = get_unparsed_resource_links(batch_size=100)
     parse_text_and_commit_to_db(new_resource_links)
 
 
