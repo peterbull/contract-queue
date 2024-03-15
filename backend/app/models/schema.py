@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import List, Optional
+from enum import Enum
 
+from app.models.models import LinkType
 from pydantic import BaseModel, ConfigDict
+from typing_extensions import List, Optional
 
 
 class PointOfContactBase(BaseModel):
@@ -46,12 +48,34 @@ class LinkBase(BaseModel):
     href: Optional[str]
 
 
-class ResourceLinkBase(BaseModel):
+class ResourceLinkSimple(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: Optional[int]
     url: Optional[str]
     text: Optional[str]
+    file_name: Optional[str]
+    file_size: Optional[str]
+    file_category: Optional[LinkType]
+    file_tokes: Optional[int]
+    summary: Optional[str]
+    summary_tokens: Optional[int]
+
+
+class ResourceLinkBase(ResourceLinkSimple):
+    summary_embedding: Optional[List[float]]
+
+
+class SummaryChunksSimple(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: Optional[int]
+    chunk_text: Optional[str]
+    chunk_tokens: Optional[int]
+
+
+class SummaryChunksBase(SummaryChunksSimple):
+    chunk_embedding: Optional[List[float]]
 
 
 class NaicsCodeSimple(BaseModel):

@@ -1,7 +1,8 @@
 import datetime
+import enum
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -104,13 +105,37 @@ class Link(Base):
     notice = relationship("Notice", back_populates="links", lazy="selectin")
 
 
+class LinkType(enum.Enum):
+    SOLICITATION = "solicitation"
+    AMENDMENT = "amendment"
+    OTHER = "other"
+
+
 class ResourceLink(Base):
     __tablename__ = "resource_links"
     id = Column(Integer, primary_key=True, index=True)
     url = Column(String)
     text = Column(String)
+    file_name = Column(String)
+    file_size = Column(Integer)
+    file_category = Column(Enum(LinkType))
+    file_tokens = Column(Integer)
+    summary = Column(String)
+    summary_tokens = Column(Integer)
+    summary_embedding = Column(Vector(1536))
+    summary_chunks = relationship("SummaryChunks", back_populates="resource_link")
     notice_id = Column(String, ForeignKey("notices.id"))
     notice = relationship("Notice", back_populates="resource_links", lazy="selectin")
+
+
+class SummaryChunks(Base):
+    __tablename__ = "summary_chunks"
+    id = Column(Integer, primary_key=True, index=True)
+    chunk_text = Column(String)
+    chunk_tokens = Column(Integer)
+    chunk_embedding = Column(Vector(1536))
+    resource_link_id = Column(Integer, ForeignKey("resource_links.id"))
+    resource_link = relationship("ResourceLink", back_populates="summary_chunks")
 
 
 class NaicsCodes(Base):
