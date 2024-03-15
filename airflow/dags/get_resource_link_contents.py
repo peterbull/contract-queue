@@ -279,7 +279,7 @@ def get_resource_link_contents():
                         session.execute(stmt)
                         session.commit()
 
-    new_resource_links = get_unparsed_resource_links(batch_size=100)
+    new_resource_links = get_unparsed_resource_links()
     parse_text_and_commit_to_db(new_resource_links)
 
 
