@@ -36,7 +36,7 @@ prior_date = pendulum.now().subtract(days=1).strftime("%Y-%m-%d")
 
 # LLM params
 client = anthropic.Anthropic()
-bs = 5
+bs = 1  # Set to `None` to run all items
 max_input_tokens = 5000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
 max_output_tokens = 1000
 model = "claude-3-haiku-20240307"
@@ -64,7 +64,7 @@ default_args = {
 )
 def generate_summaries_from_claude():
     @task()
-    def get_resources_without_summaries(prior_date: str, max_input_tokens: int):
+    def get_resources_without_summaries(prior_date: str, max_input_tokens: int, bs: int = bs):
         with SessionLocal() as db:
             stmt = text(
                 """select text from resource_links 
@@ -85,11 +85,17 @@ def generate_summaries_from_claude():
                             text is not null
                             and
                             file_tokens < :max_input_tokens
+                            limit :bs
                         """
             )
             results = (
                 db.execute(
-                    stmt, params={"prior_date": prior_date, "max_input_tokens": max_input_tokens}
+                    stmt,
+                    params={
+                        "prior_date": prior_date,
+                        "max_input_tokens": max_input_tokens,
+                        "bs": bs,
+                    },
                 )
                 .scalars()
                 .all()
@@ -142,6 +148,7 @@ def generate_summaries_from_claude():
                         system=system,
                         messages=messages,
                     )
+                    time.sleep(13)
                 except anthropic.APIConnectionError as e:
                     logging.error("The server could not be reached")
                     logging.error(e.__cause__)
@@ -208,6 +215,18 @@ def generate_summaries_from_claude():
         return True
 
     resources_to_summarize = get_resources_without_summaries(
-        prior_date=prior_date, max_input_tokens=max_input_tokens
+        prior_date=prior_date,
+        max_input_tokens=max_input_tokens,
+        bs=bs,
     )
-    claude_text_summarization(client=client, doc_texts=resources_to_summarize)
+
+    claude_text_summarization(
+        client=client,
+        doc_texts=resources_to_summarize,
+        max_output_tokens=max_output_tokens,
+        temperature=temperature,
+        model=model,
+    ) >> backup_summaries_to_s3(bucket_name=bucket_name, prior_date=prior_date)
+
+
+generate_summaries_from_claude_dag = generate_summaries_from_claude()
