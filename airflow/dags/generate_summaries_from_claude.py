@@ -36,8 +36,8 @@ prior_date = pendulum.now().subtract(days=1).strftime("%Y-%m-%d")
 
 # LLM params
 client = anthropic.Anthropic()
-bs = 1  # Set to `None` to run all items
-max_input_tokens = 5000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
+bs = None  # Set to `None` to run all items
+max_input_tokens = 3000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
 max_output_tokens = 1000
 model = "claude-3-haiku-20240307"
 temperature = 0.0
@@ -155,8 +155,8 @@ def generate_summaries_from_claude():
                         system=system,
                         messages=messages,
                     )
-                    logging.info(f"DOCUMENT: {messages[0]['content']}")
-                    logging.info(f"RESPONSE: {res.content[0].text}")
+                    # logging.info(f"DOCUMENT: {messages[0]['content']}")
+                    # logging.info(f"RESPONSE: {res.content[0].text}")
                     time.sleep(13)
                 except anthropic.APIConnectionError as e:
                     logging.error("The server could not be reached")
