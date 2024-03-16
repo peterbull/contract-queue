@@ -167,3 +167,6 @@ ContractOpportunitiesFullCSV.csv
 
 # Airflow
 airflow/logs/*
+
+# Chat Completion Logs
+**/completions/*
