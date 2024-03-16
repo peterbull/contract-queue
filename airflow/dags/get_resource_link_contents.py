@@ -70,7 +70,8 @@ def get_resource_link_contents():
             file_name = content_disposition.split("filename=")[1].strip('"')
             return file_name
         else:
-            raise ValueError("Invalid 'Content-Disposition' header.")
+            logging.error("Invalid 'Content-Disposition' header, returning empty string")
+            return ""
 
     def get_file_size(res):
         """
@@ -90,7 +91,8 @@ def get_resource_link_contents():
             file_size = res.headers.get("Content-Length")
             return int(file_size)
         else:
-            raise ValueError("Invalid 'Content-Length' header.")
+            logging.error("Invalid 'Content-Length' header, returning 0")
+            return 0
 
     def num_tokens_in_corpus(input: str, encoding_name: str = "gpt-3.5-turbo") -> int:
         encoding = tiktoken.encoding_for_model(encoding_name)
