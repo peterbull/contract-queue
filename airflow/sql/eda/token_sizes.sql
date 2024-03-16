@@ -31,3 +31,18 @@ FROM notices
 INNER JOIN resource_links ON notices.id = resource_links.notice_id
 INNER JOIN naics_codes ON notices.naics_code_id = naics_codes.id
 where "naicsCode" = 236220; 
+
+
+SELECT sum(file_tokens) as total_tokens
+-- select *
+FROM notices
+INNER JOIN resource_links ON notices.id = resource_links.notice_id
+INNER JOIN naics_codes ON notices.naics_code_id = naics_codes.id
+where "postedDate" = '2024-03-15'
+and file_tokens < 5000
+and text != 'unparsable' 
+and text != 'adobe-error'
+and text != 'encoding-error'
+; 
+
+select count(*) from resource_links where file_tokens > 5000;
