@@ -29,12 +29,14 @@ S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
 S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
 S3_REGION_NAME = os.environ.get("S3_REGION_NAME")
 bucket_name = "sam-resource-links-haiku-summaries"
+aws_prior_date = pendulum.now().subtract(days=1).strftime("%Y%m%d")
 
 # Dates
 start_date = pendulum.datetime(2024, 3, 1)
 prior_date = pendulum.now().subtract(days=1).strftime("%Y-%m-%d")
 
 # LLM params
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 client = anthropic.Anthropic()
 bs = None  # Set to `None` to run all items
 max_input_tokens = 3000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
@@ -206,7 +208,7 @@ def generate_summaries_from_claude():
             aws_access_key_id=S3_AWS_ACCESS_KEY_ID,
             aws_secret_access_key=S3_AWS_SECRET_ACCESS_KEY,
         )
-        object_name = f"{bucket_name}/{prior_date}.json"
+        object_name = f"{bucket_name}/{aws_prior_date}.json"
         try:
             json_data = json.dumps(data)
             bytes_data = json_data.encode("utf-8")
