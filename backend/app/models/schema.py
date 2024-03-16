@@ -55,7 +55,7 @@ class ResourceLinkSimple(BaseModel):
     url: Optional[str]
     text: Optional[str]
     file_name: Optional[str]
-    file_size: Optional[str]
+    file_size: Optional[int]
     file_category: Optional[LinkType]
     file_tokens: Optional[int]
     summary: Optional[str]
