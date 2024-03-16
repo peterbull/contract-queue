@@ -65,9 +65,20 @@ default_args = {
 def generate_summaries_from_claude():
     @task()
     def get_resources_without_summaries(prior_date: str, max_input_tokens: int, bs: int = bs):
+        """
+        Retrieves resources without summaries based on the given parameters.
+
+        Args:
+            prior_date (str): The prior date to filter the resources.
+            max_input_tokens (int): The maximum number of input tokens allowed.
+            bs (int, optional): The batch size for limiting the number of results. Defaults to bs.
+
+        Returns:
+            list: A list of resources without summaries.
+        """
         with SessionLocal() as db:
             stmt = text(
-                """select text from resource_links 
+                """select id, text from resource_links 
                             where notice_id in 
                                 (select id from notices
                                     where
@@ -88,25 +99,21 @@ def generate_summaries_from_claude():
                             limit :bs
                         """
             )
-            results = (
-                db.execute(
-                    stmt,
-                    params={
-                        "prior_date": prior_date,
-                        "max_input_tokens": max_input_tokens,
-                        "bs": bs,
-                    },
-                )
-                .scalars()
-                .all()
-            )
+            results = db.execute(
+                stmt,
+                params={
+                    "prior_date": prior_date,
+                    "max_input_tokens": max_input_tokens,
+                    "bs": bs,
+                },
+            ).fetchall()
 
-        return results
+        return [dict(row) for row in results]
 
     @task()
     def claude_text_summarization(
         client: anthropic.Anthropic,
-        doc_texts: str,
+        doc_texts: list[dict],
         max_output_tokens: int = 1000,
         temperature: float = 0.0,
         model: str = "claude-3-haiku-20240307",
@@ -114,33 +121,33 @@ def generate_summaries_from_claude():
         system = (
             "You are a highly skilled AI trained to analyze text and summarize it very succinctly."
         )
-        messages = [
-            {
-                "role": "user",
-                "content": f"""Analyze the provided government contracting document to extract key information that will help contractors assess whether the project aligns with their capabilities and is worth pursuing. Focus on the following aspects:
-
-                1. Scope of Work: What specific services or products does the project require?
-                2. Special Equipment Needed: Are there unique tools or machinery necessary for project completion?
-                3. Domain of Expertise Required: What specialized knowledge or skills are needed?
-                4. Contractor Workforce Size: Estimate the workforce size needed to meet project demands.
-
-                Additionally, consider these factors to further refine suitability assessment:
-                - Project Duration: How long is the project expected to last?
-                - Location and Logistics: Where is the project located, and are there significant logistical considerations?
-                - Budget and Payment Terms: What is the budget range, and how are payments structured?
-                - Compliance and Regulations: Are there specific industry regulations or standards to comply with?
-                - Past Performance Requirements: Is prior experience in similar projects a prerequisite?
-
-                Summarize these elements in no more than 25 sentences to provide a comprehensive overview, enabling contractors to quickly determine project compatibility and feasibility. Highlight any potential challenges or requirements that may necessitate additional considerations.
-                Text is below:
-                {text}
-                """,
-            },
-        ]
 
         with SessionLocal() as db:
             for doc_text in tqdm(doc_texts):
                 try:
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": f"""Analyze the provided government contracting document to extract key information that will help contractors assess whether the project aligns with their capabilities and is worth pursuing. Focus on the following aspects:
+
+                                        1. Scope of Work: What specific services or products does the project require?
+                                        2. Special Equipment Needed: Are there unique tools or machinery necessary for project completion?
+                                        3. Domain of Expertise Required: What specialized knowledge or skills are needed?
+                                        4. Contractor Workforce Size: Estimate the workforce size needed to meet project demands.
+
+                                        Additionally, consider these factors to further refine suitability assessment:
+                                        - Project Duration: How long is the project expected to last?
+                                        - Location and Logistics: Where is the project located, and are there significant logistical considerations?
+                                        - Budget and Payment Terms: What is the budget range, and how are payments structured?
+                                        - Compliance and Regulations: Are there specific industry regulations or standards to comply with?
+                                        - Past Performance Requirements: Is prior experience in similar projects a prerequisite?
+
+                                        Summarize these elements in no more than 25 sentences to provide a comprehensive overview, enabling contractors to quickly determine project compatibility and feasibility. Highlight any potential challenges or requirements that may necessitate additional considerations.
+                                        Text is below:
+                                        {doc_text.get("text")}
+                                        """,
+                        },
+                    ]
                     res = client.messages.create(
                         model=model,
                         max_tokens=max_output_tokens,
@@ -148,6 +155,8 @@ def generate_summaries_from_claude():
                         system=system,
                         messages=messages,
                     )
+                    logging.info(f"DOCUMENT: {messages[0]['content']}")
+                    logging.info(f"RESPONSE: {res.content[0].text}")
                     time.sleep(13)
                 except anthropic.APIConnectionError as e:
                     logging.error("The server could not be reached")
@@ -166,7 +175,7 @@ def generate_summaries_from_claude():
                 try:
                     stmt = (
                         update(ResourceLink)
-                        .where(ResourceLink.id == doc_text[0])
+                        .where(ResourceLink.id == doc_text.get("id"))
                         .values(summary=res.content[0].text, summary_tokens=res.usage.output_tokens)
                     )
                     db.execute(stmt)
