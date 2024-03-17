@@ -6,7 +6,9 @@ USER root
 # Install and check for correct install with pthyon
 RUN apt-get update && apt-get install -y python3-pip \
     libxml2-dev libxslt1-dev antiword unrtf poppler-utils tesseract-ocr \
-    flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig libpulse-dev
+    flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig libpulse-dev \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install additional dependencies for project
 
