@@ -172,4 +172,4 @@ airflow/logs/*
 **/completions/*
 
 # DB Backups
-./backups/*
+backups/*
