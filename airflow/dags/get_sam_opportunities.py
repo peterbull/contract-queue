@@ -23,17 +23,26 @@ from botocore.exceptions import ClientError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-SAM_PUBLIC_API_KEY = os.environ.get("SAM_PUBLIC_API_KEY")
-S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
-S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
-S3_REGION_NAME = os.environ.get("S3_REGION_NAME")
-
 logging.basicConfig(level=logging.INFO)
 
+# This is for working in development, on Saturday or Sundary there are little to no posted Notices
+# Set this offest to match a weekday to ensure a decent size dataset to work with
+# i.e., today is Sunday, so set the offset to `2` to match Notices from Friday.
+day_offset = os.environ.get("DAY_OFFSET")
+
+# Sam.gov API
+SAM_PUBLIC_API_KEY = os.environ.get("SAM_PUBLIC_API_KEY")
+
+# Database
 DATABASE_URL = os.environ.get("AIRFLOW__DATABASE__SQL_ALCHEMY_CONN")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 start_date = pendulum.datetime(2024, 3, 1)
+
+# S3
+S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
+S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
+S3_REGION_NAME = os.environ.get("S3_REGION_NAME")
 
 default_args = {
     "owner": "airflow",
@@ -46,9 +55,9 @@ default_args = {
     "retry_delay": pendulum.duration(minutes=2),
 }
 
-previous_date = pendulum.now("utc").subtract(days=1).strftime("%Y%m%d")
+prior_date = pendulum.now("utc").subtract(days=day_offset).strftime("%Y%m%d")
 bucket_name = "sam-gov-opportunities"
-file_name = f"daily-opportunity-posts/{previous_date}.json"
+file_name = f"daily-opportunity-posts/{prior_date}.json"
 daily_notices = Dataset(f"s3://{bucket_name}/{file_name}")
 
 
@@ -69,8 +78,8 @@ def parse_date(iso_str):
 def ingest_opportunities_to_s3(bucket_name, file_name):
 
     # Using previous date until the time that new info is posted becomes known
-    previous_date = pendulum.now("utc").subtract(days=1).strftime("%Y%m%d")
-    formatted_request_date = pendulum.parse(previous_date, strict=False).format("MM/DD/YYYY")
+    prior_date = pendulum.now("utc").subtract(days=1).strftime("%Y%m%d")
+    formatted_request_date = pendulum.parse(prior_date, strict=False).format("MM/DD/YYYY")
     base_url = "https://api.sam.gov/opportunities/v2/search"
 
     api_params = {

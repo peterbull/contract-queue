@@ -27,6 +27,7 @@ from typing_extensions import List, Optional
 
 logging.basicConfig(level=logging.INFO)
 
+# Database
 DATABASE_URL = os.environ.get("AIRFLOW__DATABASE__SQL_ALCHEMY_CONN")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

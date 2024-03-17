@@ -21,6 +21,11 @@ from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)
 
+# This is for working in development, on Saturday or Sundary there are little to no posted Notices
+# Set this offest to match a weekday to ensure a decent size dataset to work with
+# i.e., today is Sunday, so set the offset to `2` to match Notices from Friday.
+day_offset = os.environ.get("DAY_OFFSET")
+
 # Database
 DATABASE_URL = os.environ.get("AIRFLOW__DATABASE__SQL_ALCHEMY_CONN")
 engine = create_engine(DATABASE_URL)
@@ -31,11 +36,11 @@ S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
 S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
 S3_REGION_NAME = os.environ.get("S3_REGION_NAME")
 bucket_name = "sam-resource-links-chunks-and-embeds"
-aws_prior_date = pendulum.now().subtract(days=1).strftime("%Y%m%d")
+aws_prior_date = pendulum.now().subtract(days=2).strftime("%Y%m%d")
 
 # Dates
 start_date = pendulum.datetime(2024, 3, 1)
-prior_date = pendulum.now().subtract(days=1).strftime("%Y-%m-%d")
+prior_date = pendulum.now().subtract(days=2).strftime("%Y-%m-%d")
 
 # LLM params
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -116,7 +121,7 @@ def generate_summary_chunks_and_embeds():
             results = db.execute(stmt).scalars().all()
             data = [SummaryChunksBase.model_validate(result) for result in results]
 
-            for entry in data:
+            for entry in tqdm(data):
                 try:
                     res = client.embeddings.create(
                         input=entry.chunk_text, model="text-embedding-3-small"
@@ -156,7 +161,7 @@ def generate_summary_chunks_and_embeds():
             aws_access_key_id=S3_AWS_ACCESS_KEY_ID,
             aws_secret_access_key=S3_AWS_SECRET_ACCESS_KEY,
         )
-        object_name = f"{bucket_name}/{aws_prior_date}.json"
+        object_name = f"chunk_embeddings/{aws_prior_date}.json"
         try:
             s3_client.head_object(Bucket=bucket_name, Key=object_name)
             logging.info(f"File {object_name} already exists in S3. Skipping upload.")
