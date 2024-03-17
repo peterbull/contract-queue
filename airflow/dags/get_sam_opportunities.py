@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.INFO)
 # This is for working in development, on Saturday or Sundary there are little to no posted Notices
 # Set this offest to match a weekday to ensure a decent size dataset to work with
 # i.e., today is Sunday, so set the offset to `2` to match Notices from Friday.
-day_offset = os.environ.get("DAY_OFFSET")
+day_offset = int(os.environ.get("DAY_OFFSET"))
 
 # Sam.gov API
 SAM_PUBLIC_API_KEY = os.environ.get("SAM_PUBLIC_API_KEY")

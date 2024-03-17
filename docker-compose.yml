@@ -26,6 +26,7 @@ x-airflow-common: &airflow-common
     # _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     PYTHONPATH: "/opt/airflow/backend:${PYTHONPATH:-}"
     REDIS_PASSWORD: ${REDIS_PASSWORD}
+    DAY_OFFSET: ${DAY_OFFSET}
   volumes:
     - ./backend:/opt/airflow/backend
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
