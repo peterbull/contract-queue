@@ -170,3 +170,6 @@ airflow/logs/*
 
 # Chat Completion Logs
 **/completions/*
+
+# DB Backups
+./backups/*
