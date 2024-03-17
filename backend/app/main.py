@@ -77,7 +77,7 @@ async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends
     return [NoticeBase.model_validate(notice) for notice in notices]
 
 
-@app.get("/notices/search")
+@app.get("/notices/search/summary_chunks")
 async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
     res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
     query_embed = res.data[0].embedding
@@ -104,6 +104,41 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
             "title": item[1],
             "postedDate": item[2],
             "uiLink": item[3],
+        }
+        for item in data
+    ]
+
+
+@app.get("/notices/search/summary")
+async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
+    res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
+    query_embed = res.data[0].embedding
+    stmt = (
+        select(ResourceLink)
+        .order_by(ResourceLink.summary_embedding.l2_distance(query_embed))
+        .limit(20)
+    )
+    results = await db.execute(stmt)
+    data = results.scalars().all()
+    nearest_chunks = [ResourceLinkSimple.model_validate(item) for item in data]
+    chunk_ids = [chunk.id for chunk in nearest_chunks]
+    stmt = (
+        select(
+            ResourceLink.summary, Notice.title, ResourceLink.text, Notice.postedDate, Notice.uiLink
+        )
+        .join(ResourceLink, Notice.id == ResourceLink.notice_id)
+        .join(SummaryChunks, ResourceLink.id == SummaryChunks.resource_link_id)
+        .where(SummaryChunks.id.in_(chunk_ids))
+    )
+    result = await db.execute(stmt)
+    data = result.all()
+    return [
+        {
+            "chunk_text": item[0],
+            "title": item[1],
+            "text_sample": item[2][:500],
+            "postedDate": item[3],
+            "uiLink": item[4],
         }
         for item in data
     ]

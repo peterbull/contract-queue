@@ -52,9 +52,21 @@ if st.button("Search"):
 
 notice_query = st.text_input("Enter an industry, skill, or other keyword to find relevant notices")
 
-if st.button("Search Notices"):
+if st.button("Search Notices by Chunk"):
     res = requests.get(
-        f"{STREAMLIT_APP_BACKEND_URL}/notices/search", params={"query": notice_query}
+        f"{STREAMLIT_APP_BACKEND_URL}/notices/search/summary_chunks", params={"query": notice_query}
+    )
+
+    if res.status_code == 200:
+        data = res.json()
+        df = pd.DataFrame(data)
+        st.table(df)
+    else:
+        st.write(f"Error: {res.status_code}")
+
+if st.button("Search Notices by Summary"):
+    res = requests.get(
+        f"{STREAMLIT_APP_BACKEND_URL}/notices/search/summary", params={"query": notice_query}
     )
 
     if res.status_code == 200:
