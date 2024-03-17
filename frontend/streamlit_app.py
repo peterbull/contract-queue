@@ -49,3 +49,17 @@ if st.button("Search"):
         st.table(df)
     else:
         st.write(f"Error: {res.status_code}")
+
+notice_query = st.text_input("Enter an industry, skill, or other keyword to find relevant notices")
+
+if st.button("Search Notices"):
+    res = requests.get(
+        f"{STREAMLIT_APP_BACKEND_URL}/notices/search", params={"query": notice_query}
+    )
+
+    if res.status_code == 200:
+        data = res.json()
+        df = pd.DataFrame(data)
+        st.table(df)
+    else:
+        st.write(f"Error: {res.status_code}")

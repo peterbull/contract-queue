@@ -8,8 +8,8 @@ from app.db.database import (
     get_async_db,
     get_db,
 )
-from app.models.models import NaicsCodes, Notice
-from app.models.schema import NaicsCodeSimple, NoticeBase
+from app.models.models import NaicsCodes, Notice, ResourceLink, SummaryChunks
+from app.models.schema import NaicsCodeSimple, NoticeBase, ResourceLinkSimple, SummaryChunksSimple
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI, OpenAI
@@ -75,3 +75,35 @@ async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends
     if not notices:
         raise HTTPException(status_code=404, detail="No notices found")
     return [NoticeBase.model_validate(notice) for notice in notices]
+
+
+@app.get("/notices/search")
+async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
+    res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
+    query_embed = res.data[0].embedding
+    stmt = (
+        select(SummaryChunks)
+        .order_by(SummaryChunks.chunk_embedding.l2_distance(query_embed))
+        .limit(20)
+    )
+    results = await db.execute(stmt)
+    data = results.scalars().all()
+    nearest_chunks = [SummaryChunksSimple.model_validate(item) for item in data]
+    chunk_ids = [chunk.id for chunk in nearest_chunks]
+    stmt = (
+        select(SummaryChunks.chunk_text, Notice.title, Notice.postedDate, Notice.uiLink)
+        .join(ResourceLink, Notice.id == ResourceLink.notice_id)
+        .join(SummaryChunks, ResourceLink.id == SummaryChunks.resource_link_id)
+        .where(SummaryChunks.id.in_(chunk_ids))
+    )
+    result = await db.execute(stmt)
+    data = result.all()
+    return [
+        {
+            "chunk_text": item[0],
+            "title": item[1],
+            "postedDate": item[2],
+            "uiLink": item[3],
+        }
+        for item in data
+    ]
