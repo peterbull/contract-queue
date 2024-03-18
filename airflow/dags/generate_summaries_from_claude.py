@@ -43,11 +43,30 @@ prior_date = pendulum.now().subtract(days=day_offset).strftime("%Y-%m-%d")
 # LLM params
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 client = anthropic.Anthropic()
-bs = None  # Set to `None` to run all items
-max_input_tokens = 3000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
+bs = 2  # Set to `None` to run all items
+max_input_tokens = 5000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
 max_output_tokens = 1000
 model = "claude-3-haiku-20240307"
 temperature = 0.0
+
+# Prompts
+system = """
+    You are an AI developed for the precise task of breaking down and summarizing government procurement contracts.
+    Your mission is to sift through and boil down the essential elements from various government procurement documents, including bid invitations, Requests for Proposals (RFPs), 
+    and completed contracts. Focus on extracting critical information that potential contractors and bidders need, 
+    like detailed specifications, qualification criteria, submission deadlines, financial terms, performance standards, 
+    and conditions related to business size and certifications. Responses must be divided into clear, semantically dense 
+    chunks, separated by two newlines, ready for inclusion in a vector database for streamlined access and analysis.
+    This document may not be a soliciation. If the document is not a solicitation, please continue to provide 
+    a summary of relevant information, but do not analyze it in the same manner as a procurement request. 
+
+    Instructions:
+
+    Begin your summaries without any introductory phrases. Directly present the distilled information, 
+    avoiding direct communication with the user.
+    """
+
+prompt = "Please summarize the following document. In addition to your normal analysis, please highlight any related skills or suite of services that would be helpful for the contractor to have, as well as any preferred criteria that the procurement specifically requests. This document may not be a soliciation. If this is the case please continue to provide the same relevant information, but do not treat it as a procurement request and return ."
 
 
 default_args = {
@@ -88,12 +107,10 @@ def generate_summaries_from_claude():
                 """select id, text from resource_links 
                             where notice_id in 
                                 (select id from notices
-                                    where
-                                    naics_code_id = 
-                                        (select id from naics_codes where \"naicsCode\" = 236220)
-                                        and
-                                        \"postedDate\" = :prior_date)
-                            and 
+                                    where \"postedDate\" = :prior_date)
+                            and
+                            summary is null
+                            and
                             text != 'unparsable' 
                             and
                             text != 'adobe-error'
@@ -125,35 +142,11 @@ def generate_summaries_from_claude():
         temperature: float = 0.0,
         model: str = "claude-3-haiku-20240307",
     ):
-        system = (
-            "You are a highly skilled AI trained to analyze text and summarize it very succinctly."
-        )
-
         with SessionLocal() as db:
             for doc_text in tqdm(doc_texts):
                 try:
                     messages = [
-                        {
-                            "role": "user",
-                            "content": f"""Analyze the provided government contracting document to extract key information that will help contractors assess whether the project aligns with their capabilities and is worth pursuing. Focus on the following aspects:
-
-                                        1. Scope of Work: What specific services or products does the project require?
-                                        2. Special Equipment Needed: Are there unique tools or machinery necessary for project completion?
-                                        3. Domain of Expertise Required: What specialized knowledge or skills are needed?
-                                        4. Contractor Workforce Size: Estimate the workforce size needed to meet project demands.
-
-                                        Additionally, consider these factors to further refine suitability assessment:
-                                        - Project Duration: How long is the project expected to last?
-                                        - Location and Logistics: Where is the project located, and are there significant logistical considerations?
-                                        - Budget and Payment Terms: What is the budget range, and how are payments structured?
-                                        - Compliance and Regulations: Are there specific industry regulations or standards to comply with?
-                                        - Past Performance Requirements: Is prior experience in similar projects a prerequisite?
-
-                                        Summarize these elements in no more than 25 sentences to provide a comprehensive overview, enabling contractors to quickly determine project compatibility and feasibility. Highlight any potential challenges or requirements that may necessitate additional considerations.
-                                        Text is below:
-                                        {doc_text.get("text")}
-                                        """,
-                        },
+                        {"role": "user", "content": f"{prompt}: {doc_text}"},
                     ]
                     res = client.messages.create(
                         model=model,
