@@ -120,21 +120,20 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     )
     results = await db.execute(stmt)
     data = results.scalars().all()
-    nearest_chunks = [ResourceLinkSimple.model_validate(item) for item in data]
-    chunk_ids = [chunk.id for chunk in nearest_chunks]
+    nearest_links = [ResourceLinkSimple.model_validate(item) for item in data]
+    link_ids = [ResourceLink.id for link in nearest_links]
     stmt = (
         select(
             ResourceLink.summary, Notice.title, ResourceLink.text, Notice.postedDate, Notice.uiLink
         )
         .join(ResourceLink, Notice.id == ResourceLink.notice_id)
-        .join(SummaryChunks, ResourceLink.id == SummaryChunks.resource_link_id)
-        .where(SummaryChunks.id.in_(chunk_ids))
+        .where(ResourceLink.id.in_(link_ids))
     )
     result = await db.execute(stmt)
     data = result.all()
     return [
         {
-            "chunk_text": item[0],
+            "summary_text": item[0],
             "title": item[1],
             "text_sample": item[2][:500],
             "postedDate": item[3],
