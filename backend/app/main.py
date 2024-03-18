@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+import numpy as np
 from app.db.database import (
     add_naics_code_table,
     create_tables,
@@ -38,6 +39,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],  # Allows all headers
 )
+
+
+# def cosine_similarity(a: List[float], b: List[float]) -> float:
+#     return round(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)), 4)
 
 
 @app.get("/")
@@ -83,7 +88,7 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     query_embed = res.data[0].embedding
     stmt = (
         select(SummaryChunks)
-        .order_by(SummaryChunks.chunk_embedding.l2_distance(query_embed))
+        .order_by(SummaryChunks.chunk_embedding.cosine_distance(query_embed))
         .limit(20)
     )
     results = await db.execute(stmt)
@@ -115,13 +120,13 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     query_embed = res.data[0].embedding
     stmt = (
         select(ResourceLink)
-        .order_by(ResourceLink.summary_embedding.l2_distance(query_embed))
+        .order_by(ResourceLink.summary_embedding.cosine_distance(query_embed))
         .limit(20)
     )
     results = await db.execute(stmt)
     data = results.scalars().all()
     nearest_links = [ResourceLinkSimple.model_validate(item) for item in data]
-    link_ids = [ResourceLink.id for link in nearest_links]
+    link_ids = [link.id for link in nearest_links]
     stmt = (
         select(
             ResourceLink.summary, Notice.title, ResourceLink.text, Notice.postedDate, Notice.uiLink
