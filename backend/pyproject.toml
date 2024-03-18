@@ -37,6 +37,7 @@ tqdm = "^4.66.2"
 anthropic = "^0.19.2"
 poetry-plugin-export = "^1.6.0"
 rich = "^13.7.1"
+pyspark = "^3.5.1"
 
 [build-system]
 requires = ["poetry-core"]
