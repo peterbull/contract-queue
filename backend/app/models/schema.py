@@ -91,6 +91,12 @@ class NaicsCodeBase(NaicsCodeSimple):
     description_embedding: Optional[List[float]]
 
 
+class NaicsCodeEmbedding(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    description_embedding: Optional[List[float]]
+
+
 class NoticeBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
