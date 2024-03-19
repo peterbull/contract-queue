@@ -73,12 +73,11 @@ def parse_date(iso_str):
     start_date=start_date,
     schedule="@daily",
     tags=["produces", "dataset-scheduled"],
-    is_paused_upon_creation=False,
+    is_paused_upon_creation=True,
 )
 def ingest_opportunities_to_s3(bucket_name, file_name):
 
     # Using previous date until the time that new info is posted becomes known
-    prior_date = pendulum.now("utc").subtract(days=1).strftime("%Y%m%d")
     formatted_request_date = pendulum.parse(prior_date, strict=False).format("MM/DD/YYYY")
     base_url = "https://api.sam.gov/opportunities/v2/search"
 
@@ -166,7 +165,7 @@ ingest_opportunities_to_s3_dag = ingest_opportunities_to_s3(bucket_name, file_na
     start_date=start_date,
     tags=["consumes", "dataset-triggered"],
     schedule=[daily_notices],
-    is_paused_upon_creation=False,
+    is_paused_upon_creation=True,
 )
 def s3_opportunities_to_postgres(bucket_name, file_name):
     @task()

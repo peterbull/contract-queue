@@ -50,7 +50,7 @@ default_args = {
     start_date=start_date,
     schedule="0 6 * * *",
     # schedule=None,
-    is_paused_upon_creation=False,
+    is_paused_upon_creation=True,
 )
 def get_resource_link_contents():
     def get_file_name(res):

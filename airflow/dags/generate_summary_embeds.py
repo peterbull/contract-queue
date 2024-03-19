@@ -36,11 +36,11 @@ S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
 S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
 S3_REGION_NAME = os.environ.get("S3_REGION_NAME")
 bucket_name = "sam-resource-links-chunks-and-embeds"
-aws_prior_date = pendulum.now().subtract(days=2).strftime("%Y%m%d")
+aws_prior_date = pendulum.now().subtract(days=day_offset).strftime("%Y%m%d")
 
 # Dates
 start_date = pendulum.datetime(2024, 3, 1)
-prior_date = pendulum.now().subtract(days=2).strftime("%Y-%m-%d")
+prior_date = pendulum.now().subtract(days=day_offset).strftime("%Y-%m-%d")
 
 # LLM params
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")

@@ -85,8 +85,7 @@ default_args = {
     catchup=False,
     start_date=start_date,
     schedule=None,
-    # schedule=None,
-    is_paused_upon_creation=False,
+    is_paused_upon_creation=True,
 )
 def generate_summaries_from_claude():
     @task()
