@@ -1,26 +1,11 @@
 # Airflow 2.8.2
-import json
 import logging
 import os
-import time
 
 import boto3
-import botocore
-import numpy as np
 import pendulum
-import tiktoken
 from airflow.decorators import dag, task
-from airflow.models import Variable
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
-from app.models.models import Notice, ResourceLink, SummaryChunks
-from app.models.schema import NoticeBase, ResourceLinkBase, SummaryChunksBase
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from openai import OpenAI
-from sqlalchemy import and_, create_engine, exists, insert, select, update
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker
-from tqdm import tqdm
 
 from airflow import DAG
 
@@ -31,11 +16,7 @@ logging.basicConfig(level=logging.INFO)
 # i.e., today is Sunday, so set the offset to `2` to match Notices from Friday.
 day_offset = int(os.environ.get("DAY_OFFSET"))
 
-# Database
-DATABASE_URL = os.environ.get("AIRFLOW__DATABASE__SQL_ALCHEMY_CONN")
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-# Backup
+# Database Backup
 db_date = pendulum.now().strftime("%y%m%d")
 file_name = f"db_backup_{db_date}.sql"
 db_file_path = f"~/{file_name}"
@@ -83,7 +64,7 @@ with DAG(
         bash_command=f"rm {db_file_path}",
     )
 
-    @task
+    @task()
     def opportunity_obj_to_s3():
         s3_client = boto3.client(
             "s3",
