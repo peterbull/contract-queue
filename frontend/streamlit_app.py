@@ -33,6 +33,7 @@ if st.button("Backend Health Check"):
         st.write("Failed to fetch")
 
 st.markdown("***")
+st.markdown("### Search for NAICS Codes")
 res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/naicscodes")
 if res.status_code == 200:
     unique_naics_codes = res.json()

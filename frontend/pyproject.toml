@@ -9,6 +9,9 @@ python = "^3.10"
 streamlit = "^1.32.0"
 debugpy = "^1.8.1"
 streamlit-option-menu = "^0.3.12"
+networkx = "^3.2.1"
+scikit-learn = "^1.4.1.post1"
+matplotlib = "^3.8.3"
 
 
 [build-system]

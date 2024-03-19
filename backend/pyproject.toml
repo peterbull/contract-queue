@@ -38,6 +38,9 @@ anthropic = "^0.19.2"
 poetry-plugin-export = "^1.6.0"
 rich = "^13.7.1"
 pyspark = "^3.5.1"
+networkx = "^3.2.1"
+scikit-learn = "^1.4.1.post1"
+matplotlib = "^3.8.3"
 
 [build-system]
 requires = ["poetry-core"]
