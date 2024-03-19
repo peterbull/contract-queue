@@ -10,7 +10,14 @@ from app.db.database import (
     get_db,
 )
 from app.models.models import NaicsCodes, Notice, ResourceLink, SummaryChunks
-from app.models.schema import NaicsCodeSimple, NoticeBase, ResourceLinkSimple, SummaryChunksSimple
+from app.models.schema import (
+    NaicsCodeBase,
+    NaicsCodeEmbedding,
+    NaicsCodeSimple,
+    NoticeBase,
+    ResourceLinkSimple,
+    SummaryChunksSimple,
+)
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI, OpenAI
@@ -69,7 +76,9 @@ async def search_naics_codes(query: str, db: AsyncSession = Depends(get_async_db
     )
     result = await db.execute(stmt)
     codes = result.scalars().all()
-    return [NaicsCodeSimple.model_validate(code) for code in codes]
+    data = [NaicsCodeSimple.model_validate(code) for code in codes]
+    embeddings = [NaicsCodeEmbedding.model_validate(code) for code in codes]
+    return data, embeddings
 
 
 @app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])
