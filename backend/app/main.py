@@ -105,22 +105,36 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     nearest_chunks = [SummaryChunksSimple.model_validate(item) for item in data]
     chunk_ids = [chunk.id for chunk in nearest_chunks]
     stmt = (
-        select(SummaryChunks.chunk_text, Notice.title, Notice.postedDate, Notice.uiLink)
+        select(
+            SummaryChunks.chunk_text,
+            ResourceLink.summary,
+            Notice.title,
+            ResourceLink.text,
+            Notice.uiLink,
+            Notice.postedDate,
+            SummaryChunks.chunk_embedding,
+        )
         .join(ResourceLink, Notice.id == ResourceLink.notice_id)
         .join(SummaryChunks, ResourceLink.id == SummaryChunks.resource_link_id)
         .where(SummaryChunks.id.in_(chunk_ids))
     )
     result = await db.execute(stmt)
     data = result.all()
-    return [
+    mapped_data = [
         {
-            "chunk_text": item[0],
-            "title": item[1],
-            "postedDate": item[2],
-            "uiLink": item[3],
+            "summary_chunk": item[0],
+            "summary": item[1],
+            "title": item[2],
+            "text": item[3],
+            "uiLink": item[4],
+            "postedDate": item[5].isoformat(),
         }
         for item in data
     ]
+
+    embeddings = [{"chunk_embedding": item[6].tolist()} for item in data]
+
+    return mapped_data, embeddings
 
 
 @app.get("/notices/search/summary")

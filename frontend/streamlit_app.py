@@ -71,7 +71,15 @@ if st.button("Search Notices by Chunk"):
     )
 
     if res.status_code == 200:
-        data = res.json()
+        data, embeddings = res.json()
+        fig = create_network_graph(
+            data,
+            embeddings,
+            embedding_key="chunk_embedding",
+            title_key="title",
+            similarity_threshold=0.5,
+        )
+        st.plotly_chart(fig)
         df = pd.DataFrame(data)
         st.session_state["df_chunks"] = df
     else:
