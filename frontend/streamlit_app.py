@@ -79,11 +79,14 @@ if st.button("Search Notices by Chunk"):
             title_key="title",
             similarity_threshold=0.5,
         )
-        st.plotly_chart(fig)
+        st.session_state["fig_chunks"] = fig
         df = pd.DataFrame(data)
         st.session_state["df_chunks"] = df
     else:
         st.write(f"Error: {res.status_code}")
+
+if "fig_chunks" in st.session_state:
+    st.plotly_chart(st.session_state["fig_chunks"])
 
 if "df_chunks" in st.session_state:
     df = st.session_state["df_chunks"]
@@ -101,11 +104,22 @@ if st.button("Search Notices by Summary"):
     )
 
     if res.status_code == 200:
-        data = res.json()
+        data, embeddings = res.json()
+        fig = create_network_graph(
+            data,
+            embeddings,
+            embedding_key="summary_embedding",
+            title_key="title",
+            similarity_threshold=0.5,
+        )
+        st.session_state["fig_summary"] = fig
         df = pd.DataFrame(data)
         st.session_state["df_summary"] = df
     else:
         st.write(f"Error: {res.status_code}")
+
+if "fig_summary" in st.session_state:
+    st.plotly_chart(st.session_state["fig_summary"])
 
 if "df_summary" in st.session_state:
     df = st.session_state["df_summary"]

@@ -152,20 +152,29 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     link_ids = [link.id for link in nearest_links]
     stmt = (
         select(
-            ResourceLink.summary, Notice.title, ResourceLink.text, Notice.postedDate, Notice.uiLink
+            ResourceLink.summary,
+            Notice.title,
+            ResourceLink.text,
+            Notice.uiLink,
+            Notice.postedDate,
+            ResourceLink.summary_embedding,
         )
         .join(ResourceLink, Notice.id == ResourceLink.notice_id)
         .where(ResourceLink.id.in_(link_ids))
     )
     result = await db.execute(stmt)
     data = result.all()
-    return [
+    mapped_data = [
         {
-            "summary_text": item[0],
+            "summary": item[0],
             "title": item[1],
-            "text_sample": item[2][:500],
-            "postedDate": item[3],
-            "uiLink": item[4],
+            "text": item[2],
+            "uiLink": item[3],
+            "postedDate": item[4].isoformat(),
         }
         for item in data
     ]
+
+    embeddings = [{"summary_embedding": item[5].tolist()} for item in data]
+
+    return mapped_data, embeddings
