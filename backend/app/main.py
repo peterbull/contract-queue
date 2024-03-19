@@ -72,7 +72,7 @@ async def search_naics_codes(query: str, db: AsyncSession = Depends(get_async_db
     stmt = (
         select(NaicsCodes)
         .order_by(NaicsCodes.description_embedding.l2_distance(query_embed))
-        .limit(5)
+        .limit(20)
     )
     result = await db.execute(stmt)
     codes = result.scalars().all()
