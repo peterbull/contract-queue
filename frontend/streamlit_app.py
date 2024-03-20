@@ -12,7 +12,6 @@ from utils.graphs import create_network_graph
 st.set_page_config(layout="wide")
 STREAMLIT_APP_BACKEND_URL = os.environ.get("STREAMLIT_APP_BACKEND_URL")
 
-
 st.title("Contract Queue Frontend")
 
 st.markdown("### Health Check")
@@ -32,6 +31,47 @@ if res.status_code == 200:
 else:
     unique_naics_codes = []
 
+st.markdown(
+    """The North American Industry Classification System (`NAICS`) is the standard used by Federal statistical agencies in classifying business establishments for the purpose of collecting, analyzing, and publishing statistical data related to the U.S. business economy. NAICS codes are one of the categorization methods for government RFP or procurement postings."""
+)
+st.markdown(
+    "Below you can search for `NAICS` categories by semantic similarity. The `embeddings` for your query will be compared to the `embeddings` of the NAICS code description and evaluated using `cosine distance`."
+)
+st.latex(
+    r"""
+S_{ij} = \sum_{k} E_{ik} \cdot E_{jk}
+"""
+)
+
+st.latex(
+    r"""
+S = E \cdot E^T = \begin{bmatrix}
+1 & 2 & 3 & \cdots & 1535 & 1536
+\end{bmatrix} \cdot \begin{bmatrix}
+1 \\
+2 \\
+3 \\
+\vdots \\
+1535 \\
+1536
+\end{bmatrix}
+"""
+)
+st.markdown("""Your query will return a `network graph` and a `dataframe`.""")
+st.markdown(
+    "- The `dataframe` will return the `nearest` NAICS codes, a.k.a, those most semantically similar to `your query`."
+)
+st.markdown(
+    "- The `network graph` will return a node graph of the `relationships` between the returned NAICS codes, specifically, how similar they are to `each other`"
+)
+
+st.latex(
+    r"""
+S = E \cdot E^T
+"""
+)
+
+
 # Naics Code Query
 naics_query = st.text_input(
     "Enter an industry, skill, or other keyword to find related NAICS job codes, ex: Software Development",
@@ -49,6 +89,7 @@ if st.button("Search"):
         fig = create_network_graph(
             data,
             embeddings,
+            naics_query,
             embedding_key="description_embedding",
             title_key="title",
             similarity_threshold=0.5,
@@ -59,13 +100,29 @@ if st.button("Search"):
     else:
         st.write(f"Error: {res.status_code}")
 
+st.markdown("***")
+st.markdown("## Search Notices by Summary or Chunked Summary")
+st.markdown(
+    "New federal procurement notices and related attachments are posted daily on [sam.gov](https://www.sam.gov). The `airflow` backend of this project it configured to get these notices each day, parse their related attachments and store in a `postgres` database."
+)
+st.markdown("After parsing and storing the attachment data as text, `airflow` will:")
+st.markdown("- Use Anthropic's `claude haiku` model to generate summaries of the raw text")
+st.markdown("- Generate `embeddings` for the `summary` using OpenAI's `text-embedding-3-small`")
+st.markdown("- Chunk the summary")
+st.markdown(
+    "- Generate `embeddings` for the `summary chunks` using OpenAI's `text-embedding-3-small`"
+)
+st.markdown(
+    "*Due to API rate limits from both `sam.gov` and `Anthropic` a single day of data will be used for the purposes of this demo.*"
+)
 
 notice_query = st.text_input(
     "Enter an industry, skill, or other keyword to find relevant notices", "software development"
 )
 
 # Chunk Query
-if st.button("Search Notices by Chunk"):
+if st.button("Search Notices by Summary Chunk"):
+
     res = requests.get(
         f"{STREAMLIT_APP_BACKEND_URL}/notices/search/summary_chunks", params={"query": notice_query}
     )
@@ -75,6 +132,7 @@ if st.button("Search Notices by Chunk"):
         fig = create_network_graph(
             data,
             embeddings,
+            notice_query,
             embedding_key="chunk_embedding",
             title_key="title",
             similarity_threshold=0.5,
@@ -108,6 +166,7 @@ if st.button("Search Notices by Summary"):
         fig = create_network_graph(
             data,
             embeddings,
+            notice_query,
             embedding_key="summary_embedding",
             title_key="title",
             similarity_threshold=0.5,
