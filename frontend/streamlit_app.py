@@ -12,11 +12,26 @@ from utils.graphs import create_network_graph
 st.set_page_config(layout="wide")
 STREAMLIT_APP_BACKEND_URL = os.environ.get("STREAMLIT_APP_BACKEND_URL")
 
+# section = st.sidebar.selectbox("Sections", ["Section 1", "Section 2", "Section 3"])
 
+st.image("imgs/contract-queue.webp", width=400)
 st.title("Contract Queue")
 st.markdown("## An app for exploring government procurement data with semantic search")
 st.markdown("***")
-st.markdown("### Calculating Cosine Distance for Embedding Distances")
+st.markdown("### Navigation")
+st.markdown(
+    "- [Calculating Cosine Distance to Evaluate Semantic Similarity](#calculating-cosine-distance-to-evaluate-semantic-similarity)"
+)
+st.markdown(
+    "- [Calculating Similarity for Network Graphs](#calculating-similarity-for-network-graphs)"
+)
+st.markdown("- [Search for NAICS Codes](#search-for-naics-codes)")
+st.markdown(
+    "- [Search Notices by Summary or Chunked Summary](#search-notices-by-summary-or-chunked-summary)"
+)
+
+st.divider()
+st.header("Calculating Cosine Distance to Evaluate Semantic Similarity")
 st.markdown(
     "**The `pgvector` plugin for `postgres` will be can handle calculating `cosine distances` out of the box, so we'll be using that to evaluate distances between query embeddings and the returned embeddings from the database.**"
 )
@@ -27,8 +42,8 @@ st.latex(
     """
 )
 
-
-st.markdown("### Calculating Similarity for Network Graphs")
+st.divider()
+st.header("Calculating Similarity for Network Graphs")
 st.markdown("**The formula for a similarity matrix is:**")
 st.latex(
     r"""
@@ -73,7 +88,7 @@ S = E \cdot E^T = \begin{bmatrix}
 st.markdown("**This will compare every `embedding vector` to every other `embedding vector`**")
 st.markdown("***")
 
-st.markdown("## Search for NAICS Codes")
+st.header("Search for NAICS Codes")
 res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/naicscodes")
 if res.status_code == 200:
     unique_naics_codes = res.json()
@@ -124,7 +139,7 @@ if st.button("Search"):
         st.write(f"Error: {res.status_code}")
 
 st.markdown("***")
-st.markdown("## Search Notices by Summary or Chunked Summary")
+st.header("Search Notices by Summary or Chunked Summary")
 st.markdown(
     "New federal procurement notices and related attachments are posted daily on [sam.gov](https://www.sam.gov). The `airflow` backend of this project it configured to get these notices each day, parse their related attachments and store in a `postgres` database."
 )
