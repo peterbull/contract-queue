@@ -78,7 +78,7 @@ services:
       args:
         STREAMLIT_APP_BACKEND_URL: ${STREAMLIT_APP_BACKEND_URL}
     env_file:
-      - .env
+      - .env.prod
     volumes:
       - ./frontend:/usr/src/app
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
