@@ -14,3 +14,4 @@ RUN apt-get update --fix-missing && \
 
 COPY . .
 
+EXPOSE 8501
