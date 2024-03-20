@@ -93,7 +93,6 @@ services:
     ports:
       - "80:80"
     depends_on:
-      frontend:
       backend:
         condition: service_healthy
       airflow-webserver:
