@@ -14,7 +14,7 @@ RUN apt-get update --fix-missing && \
 
 COPY . .
 
-CMD ["streamlit", "run", "streamlit_app.py"]
+CMD ["streamlit", "run", "streamlit_app.py", "--server.address 0.0.0.0", "--server.port 8501"]
 
 # Stage 2: Set up Nginx
 FROM nginx:1.25.3
