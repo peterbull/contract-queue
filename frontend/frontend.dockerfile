@@ -1,4 +1,4 @@
-FROM python:3.10.13-slim
+FROM python:3.10.13-slim AS build
 
 ENV POETRY_VERSION=1.7.1
 WORKDIR /usr/src/app
@@ -14,4 +14,15 @@ RUN apt-get update --fix-missing && \
 
 COPY . .
 
-EXPOSE 8501
+CMD ["streamlit", "run", "streamlit_app.py"]
+
+# Stage 2: Set up Nginx
+FROM nginx:1.25.3
+
+# Copy the Streamlit app from the first stage
+COPY --from=build /usr/src/app /usr/share/nginx/html
+
+# Copy the Nginx configuration file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
