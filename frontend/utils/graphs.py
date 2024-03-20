@@ -81,7 +81,7 @@ def create_network_graph(
     fig = go.Figure(
         data=[edge_trace, node_trace],
         layout=go.Layout(
-            title="<br>Network Graph of NAICS Code Relationships",
+            title="<br>Network Graph of Relationships",
             titlefont_size=16,
             showlegend=False,
             hovermode="closest",
