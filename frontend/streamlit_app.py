@@ -12,19 +12,68 @@ from utils.graphs import create_network_graph
 st.set_page_config(layout="wide")
 STREAMLIT_APP_BACKEND_URL = os.environ.get("STREAMLIT_APP_BACKEND_URL")
 
-st.title("Contract Queue Frontend")
 
-st.markdown("### Health Check")
-if st.button("Backend Health Check"):
-    res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}")
-    if res.status_code == 200:
-        data = res.json()
-        st.write(data)
-    else:
-        st.write("Failed to fetch")
-
+st.title("Contract Queue")
+st.markdown("## An app for exploring government procurement data with semantic search")
 st.markdown("***")
-st.markdown("### Search for NAICS Codes")
+st.markdown("### Calculating Cosine Distance for Embedding Distances")
+st.markdown(
+    "**The `pgvector` plugin for `postgres` will be can handle calculating `cosine distances` out of the box, so we'll be using that to evaluate distances between query embeddings and the returned embeddings from the database.**"
+)
+
+st.latex(
+    r"""
+    \text{{cosine\_distance}}(\mathbf{{A}}, \mathbf{{B}}) = 1 - \frac{{\mathbf{{A}} \cdot \mathbf{{B}}}}{{\|\mathbf{{A}}\| \|\mathbf{{B}}\|}}
+    """
+)
+
+
+st.markdown("### Calculating Similarity for Network Graphs")
+st.markdown("**The formula for a similarity matrix is:**")
+st.latex(
+    r"""
+S_{ij} = \sum_{k} E_{ik} \cdot E_{jk}
+"""
+)
+
+st.markdown(
+    "**All this means is that we're going to combine the `embedding vectors` of our results into a `matrix` and get the `dot product` of the combined `matrix` and the combined `matrix transposed`**"
+)
+
+st.latex(
+    r"""
+E = \begin{bmatrix}
+    1 & 2 & 3 & \cdots & 1535 & 1536 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+    e_{m1} & e_{m2} & e_{m3} & \cdots & e_{m,1535} & e_{m,1536}
+\end{bmatrix}
+
+E^T = \begin{bmatrix}
+    1 & \cdots & e_{m1} \\
+    2 & \cdots & e_{m2} \\
+    3 & \cdots & e_{m3} \\
+    \vdots & \ddots & \vdots \\
+    1535 & \cdots & e_{m,1535} \\
+    1536 & \cdots & e_{m,1536}
+\end{bmatrix}
+
+S = E \cdot E^T = \begin{bmatrix}
+    1 & \cdots & e_{m1} \\
+    \vdots & \ddots & \vdots \\
+    e_{m1} & \cdots & e_{m,1536}
+\end{bmatrix} \cdot \begin{bmatrix}
+    1 & \cdots & 1536 \\
+    \vdots & \ddots & \vdots \\
+    e_{m1} & \cdots & e_{m,1536}
+\end{bmatrix}
+"""
+)
+
+
+st.markdown("**This will compare every `embedding vector` to every other `embedding vector`**")
+st.markdown("***")
+
+st.markdown("## Search for NAICS Codes")
 res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/naicscodes")
 if res.status_code == 200:
     unique_naics_codes = res.json()
@@ -37,26 +86,7 @@ st.markdown(
 st.markdown(
     "Below you can search for `NAICS` categories by semantic similarity. The `embeddings` for your query will be compared to the `embeddings` of the NAICS code description and evaluated using `cosine distance`."
 )
-st.latex(
-    r"""
-S_{ij} = \sum_{k} E_{ik} \cdot E_{jk}
-"""
-)
 
-st.latex(
-    r"""
-S = E \cdot E^T = \begin{bmatrix}
-1 & 2 & 3 & \cdots & 1535 & 1536
-\end{bmatrix} \cdot \begin{bmatrix}
-1 \\
-2 \\
-3 \\
-\vdots \\
-1535 \\
-1536
-\end{bmatrix}
-"""
-)
 st.markdown("""Your query will return a `network graph` and a `dataframe`.""")
 st.markdown(
     "- The `dataframe` will return the `nearest` NAICS codes, a.k.a, those most semantically similar to `your query`."
@@ -64,13 +94,6 @@ st.markdown(
 st.markdown(
     "- The `network graph` will return a node graph of the `relationships` between the returned NAICS codes, specifically, how similar they are to `each other`"
 )
-
-st.latex(
-    r"""
-S = E \cdot E^T
-"""
-)
-
 
 # Naics Code Query
 naics_query = st.text_input(
