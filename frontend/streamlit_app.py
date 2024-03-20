@@ -14,10 +14,13 @@ STREAMLIT_APP_BACKEND_URL = os.environ.get("STREAMLIT_APP_BACKEND_URL")
 
 # section = st.sidebar.selectbox("Sections", ["Section 1", "Section 2", "Section 3"])
 
+# Title
 st.image("imgs/contract-queue.webp", width=400)
 st.title("Contract Queue")
 st.markdown("## An app for exploring government procurement data with semantic search")
 st.markdown("***")
+
+# Nav
 st.markdown("### Navigation")
 st.markdown(
     "- [Calculating Cosine Distance to Evaluate Semantic Similarity](#calculating-cosine-distance-to-evaluate-semantic-similarity)"
@@ -29,8 +32,10 @@ st.markdown("- [Search for NAICS Codes](#search-for-naics-codes)")
 st.markdown(
     "- [Search Notices by Summary or Chunked Summary](#search-notices-by-summary-or-chunked-summary)"
 )
-
 st.divider()
+
+
+# Math
 st.header("Calculating Cosine Distance to Evaluate Semantic Similarity")
 st.markdown(
     "**The `pgvector` plugin for `postgres` will be can handle calculating `cosine distances` out of the box, so we'll be using that to evaluate distances between query embeddings and the returned embeddings from the database.**"
@@ -88,12 +93,9 @@ S = E \cdot E^T = \begin{bmatrix}
 st.markdown("**This will compare every `embedding vector` to every other `embedding vector`**")
 st.markdown("***")
 
+
+# NAICS code search
 st.header("Search for NAICS Codes")
-res = requests.get(f"{STREAMLIT_APP_BACKEND_URL}/naicscodes")
-if res.status_code == 200:
-    unique_naics_codes = res.json()
-else:
-    unique_naics_codes = []
 
 st.markdown(
     """The North American Industry Classification System (`NAICS`) is the standard used by Federal statistical agencies in classifying business establishments for the purpose of collecting, analyzing, and publishing statistical data related to the U.S. business economy. NAICS codes are one of the categorization methods for government RFP or procurement postings."""
@@ -110,7 +112,8 @@ st.markdown(
     "- The `network graph` will return a node graph of the `relationships` between the returned NAICS codes, specifically, how similar they are to `each other`"
 )
 
-# Naics Code Query
+st.markdown("<br/>", unsafe_allow_html=True)
+# Naics Query Input
 naics_query = st.text_input(
     "Enter an industry, skill, or other keyword to find related NAICS job codes, ex: Software Development",
     "cabinet making",
@@ -138,7 +141,10 @@ if st.button("Search"):
     else:
         st.write(f"Error: {res.status_code}")
 
-st.markdown("***")
+st.divider()
+
+
+# Summary Search
 st.header("Search Notices by Summary or Chunked Summary")
 st.markdown(
     "New federal procurement notices and related attachments are posted daily on [sam.gov](https://www.sam.gov). The `airflow` backend of this project it configured to get these notices each day, parse their related attachments and store in a `postgres` database."
@@ -154,6 +160,7 @@ st.markdown(
     "*Due to API rate limits from both `sam.gov` and `Anthropic` a single day of data will be used for the purposes of this demo.*"
 )
 
+st.markdown("<br/>", unsafe_allow_html=True)
 notice_query = st.text_input(
     "Enter an industry, skill, or other keyword to find relevant notices", "software development"
 )
