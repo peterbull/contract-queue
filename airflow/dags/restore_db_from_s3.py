@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 day_offset = int(os.environ.get("DAY_OFFSET"))
 
 # Database Backup
-db_date = "240315"
+db_date = "240320"
 file_name = f"db_backup_{db_date}.sql"
 db_file_path = f"~/{file_name}"
 
