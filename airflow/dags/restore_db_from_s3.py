@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 day_offset = int(os.environ.get("DAY_OFFSET"))
 
 # Database Backup
-db_date = pendulum.now().strftime("%y%m%d")
+db_date = "240315"
 file_name = f"db_backup_{db_date}.sql"
 db_file_path = f"~/{file_name}"
 
@@ -26,11 +26,9 @@ S3_AWS_ACCESS_KEY_ID = os.environ.get("S3_AWS_ACCESS_KEY_ID")
 S3_AWS_SECRET_ACCESS_KEY = os.environ.get("S3_AWS_SECRET_ACCESS_KEY")
 S3_REGION_NAME = os.environ.get("S3_REGION_NAME")
 bucket_name = "sam-postgres-backups"
-aws_prior_date = pendulum.now().subtract(days=day_offset).strftime("%y%m%d")
 
 # Dates
 start_date = pendulum.datetime(2024, 3, 1)
-prior_date = pendulum.now().subtract(days=day_offset).strftime("%Y-%m-%d")
 
 # Postgres
 pg_password = os.environ.get("POSTGRES_PASSWORD")
