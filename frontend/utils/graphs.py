@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 def create_network_graph(
     data: List[Dict[str, Any]],
     embeddings: List[Dict[str, List[float]]],
+    query: str,
     embedding_key: str = "description_embedding",
     title_key: str = "title",
     similarity_threshold: float = 0.5,
@@ -87,7 +88,7 @@ def create_network_graph(
             margin=dict(b=20, l=5, r=5, t=40),
             annotations=[
                 dict(
-                    text="Contract Queue",
+                    text=f"Query: {query}",
                     showarrow=False,
                     xref="paper",
                     yref="paper",
