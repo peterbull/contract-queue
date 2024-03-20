@@ -1,4 +1,4 @@
-FROM python:3.10.13-slim AS build
+FROM python:3.10.13-slim 
 
 ENV POETRY_VERSION=1.7.1
 WORKDIR /usr/src/app
