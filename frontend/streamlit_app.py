@@ -76,7 +76,11 @@ E^T = \begin{bmatrix}
     1535 & \cdots & e_{m,1535} \\
     1536 & \cdots & e_{m,1536}
 \end{bmatrix}
-
+"""
+)
+st.markdown("<br/>", unsafe_allow_html=True)
+st.latex(
+    r"""
 S = E \cdot E^T = \begin{bmatrix}
     1 & \cdots & e_{m1} \\
     \vdots & \ddots & \vdots \\
@@ -98,7 +102,7 @@ st.markdown("***")
 st.header("Search for NAICS Codes")
 
 st.markdown(
-    """The North American Industry Classification System (`NAICS`) is the standard used by Federal statistical agencies in classifying business establishments for the purpose of collecting, analyzing, and publishing statistical data related to the U.S. business economy. NAICS codes are one of the categorization methods for government RFP or procurement postings."""
+    """The [North American Industry Classification System](https://www.census.gov/naics/) (`NAICS`) is the standard used by Federal statistical agencies in classifying business establishments for the purpose of collecting, analyzing, and publishing statistical data related to the U.S. business economy. NAICS codes are one of the categorization methods for government RFP or procurement postings."""
 )
 st.markdown(
     "Below you can search for `NAICS` categories by semantic similarity. The `embeddings` for your query will be compared to the `embeddings` of the NAICS code description and evaluated using `cosine distance`."
