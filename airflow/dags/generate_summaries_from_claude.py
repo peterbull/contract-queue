@@ -9,6 +9,7 @@ import boto3
 import botocore
 import pendulum
 from airflow.decorators import dag, task
+from airflow.exceptions import AirflowSkipException
 from app.models.models import Notice, ResourceLink
 from app.models.schema import NoticeBase, ResourceLinkBase
 from sqlalchemy import create_engine, select, text, update
@@ -44,7 +45,7 @@ prior_date = pendulum.now().subtract(days=day_offset).strftime("%Y-%m-%d")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 client = anthropic.Anthropic()
 bs = 300  # Number of resource links to summarize -- Set to `None` to run all items
-max_input_tokens = 5000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
+max_input_tokens = 10000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
 max_output_tokens = 1000
 model = "claude-3-haiku-20240307"
 temperature = 0.0
@@ -162,9 +163,10 @@ def generate_summaries_from_claude():
                     logging.error(e.__cause__)
                     continue
                 except anthropic.RateLimitError as e:
-                    logging.error("A 429 status code was received; we should back off a bit.")
-                    time.sleep(60)  # sleep for 60 seconds
-                    continue
+                    logging.error(f"429 status code: {e.response}")
+                    raise AirflowSkipException(
+                        "Either we've hit our daily token limit or Anthropic is under heavy load, either way, moving onto next DAG"
+                    )
                 except anthropic.APIStatusError as e:
                     logging.error("Another non-200-range status code was received")
                     logging.error(f"Status code: {e.status_code}")
