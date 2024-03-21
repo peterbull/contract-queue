@@ -187,7 +187,7 @@ def generate_summaries_from_claude():
                     continue
 
                 logging.info(
-                    f"Succesfully summarized {res.usage.input_tokens} token document in {res.usage.input_tokens} tokens"
+                    f"Succesfully summarized {res.usage.input_tokens} token document in {res.usage.output_tokens} tokens"
                 )
 
     @task()
