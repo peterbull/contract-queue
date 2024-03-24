@@ -127,3 +127,11 @@ class NoticeBase(BaseModel):
     points_of_contact: Optional[List[PointOfContactBase]]
     links: Optional[List[LinkBase]]
     resource_links: Optional[List[ResourceLinkBase]]
+
+
+class MeanEmbeddingBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: Optional[int]
+    mean_embedding: Optional[List[float]]
+    notice_id: Optional[str]

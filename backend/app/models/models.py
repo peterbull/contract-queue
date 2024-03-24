@@ -49,6 +49,7 @@ class Notice(Base):
     points_of_contact = relationship("PointOfContact", back_populates="notice", lazy="selectin")
     links = relationship("Link", back_populates="notice", lazy="selectin")
     resource_links = relationship("ResourceLink", back_populates="notice", lazy="selectin")
+    mean_embeddings = relationship("MeanEmbeddings", back_populates="notice", lazy="selectin")
 
 
 class PointOfContact(Base):
@@ -149,9 +150,9 @@ class NaicsCodes(Base):
     notice = relationship("Notice", back_populates="naicsCode", lazy="selectin")
 
 
-# class IndexItemDescriptions(Base):
-#     __tablename__ = "index_item_descriptions"
-#     id = Column(Integer, primary_key=True, index=True)
-#     index_item_description = Column(String)
-#     naics_code_id = Column(Integer, ForeignKey("naics_codes.id"))
-#     naics_code = relationship("NaicsCodes", back_populates="index_item_descriptions")
+class MeanEmbeddings(Base):
+    __tablename__ = "mean_embeddings"
+    id = Column(Integer, primary_key=True, index=True)
+    mean_embedding = Column(Vector(1536))
+    notice_id = Column(String, ForeignKey("notices.id"))
+    notice = relationship("Notice", back_populates="mean_embeddings")
