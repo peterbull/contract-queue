@@ -96,6 +96,16 @@ def get_resource_link_contents():
             return 0
 
     def num_tokens_in_corpus(input: str, encoding_name: str = "gpt-3.5-turbo") -> int:
+        """
+        Calculates the number of tokens in a given input string using the specified encoding.
+
+        Args:
+            input (str): The input string to calculate the number of tokens for.
+            encoding_name (str, optional): The name of the encoding to use. Defaults to "gpt-3.5-turbo".
+
+        Returns:
+            int: The number of tokens in the input string.
+        """
         encoding = tiktoken.encoding_for_model(encoding_name)
         num_tokens = len(encoding.encode(input))
         return num_tokens

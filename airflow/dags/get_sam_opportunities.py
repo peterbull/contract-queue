@@ -92,6 +92,21 @@ def ingest_opportunities_to_s3(bucket_name, file_name):
 
     @task.branch()
     def check_existing_data(bucket_name, file_name):
+        """
+        Checks if a file exists in an S3 bucket.
+
+        Args:
+            bucket_name (str): The name of the S3 bucket.
+            file_name (str): The name of the file to check.
+
+        Returns:
+            str: The action to be taken based on the file's existence.
+                - If the file exists, returns "end_dag".
+                - If the file does not exist, returns "get_new_opportunities".
+
+        Raises:
+            botocore.exceptions.ClientError: If there is an error while checking the file's existence.
+        """
         s3_client = boto3.client(
             "s3",
             region_name=S3_REGION_NAME,
@@ -111,6 +126,19 @@ def ingest_opportunities_to_s3(bucket_name, file_name):
 
     @task()
     def get_new_opportunities(base_url, api_params):
+        """
+        Retrieves new opportunities from a given API endpoint.
+
+        Args:
+            base_url (str): The base URL of the API endpoint.
+            api_params (dict): A dictionary containing the API parameters.
+
+        Returns:
+            list: A list of new opportunities retrieved from the API.
+
+        Raises:
+            Exception: If the request fails with a non-200 status code.
+        """
         opportunities = []
 
         while True:
@@ -136,6 +164,17 @@ def ingest_opportunities_to_s3(bucket_name, file_name):
         outlets=[daily_notices],
     )
     def opportunity_obj_to_s3(opportunities, bucket_name, file_name):
+        """
+        Writes the given opportunities to an S3 bucket as a JSON file.
+
+        Args:
+            opportunities (list): List of opportunity objects.
+            bucket_name (str): Name of the S3 bucket.
+            file_name (str): Name of the JSON file to be created.
+
+        Returns:
+            None
+        """
         s3_client = boto3.client(
             "s3",
             region_name=S3_REGION_NAME,

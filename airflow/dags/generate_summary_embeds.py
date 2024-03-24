@@ -70,6 +70,14 @@ default_args = {
 def generate_summary_embeds():
     @task()
     def get_summary_embeddings():
+        """
+        Retrieves resource links with non-empty summaries and no summary embeddings,
+        generates embeddings for the summaries using OpenAI's text-embedding-3-small model,
+        and updates the database with the generated embeddings.
+
+        Returns:
+            None
+        """
         client = OpenAI()
         with SessionLocal() as db:
             stmt = (
@@ -102,6 +110,15 @@ def generate_summary_embeds():
 
     @task()
     def summaries_and_embeds_to_s3():
+        """
+        Uploads summaries and embeddings to an S3 bucket.
+
+        Retrieves summaries and embeddings from a database, converts the embeddings to a list of floats,
+        and uploads the data as a JSON file to an S3 bucket.
+
+        Returns:
+            bool: True if the upload is successful, False otherwise.
+        """
         with SessionLocal() as db:
             stmt = select(
                 ResourceLink.id,

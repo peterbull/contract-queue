@@ -45,7 +45,37 @@ with DAG(
     start_date=start_date,
     schedule_interval=None,
     is_paused_upon_creation=True,
+    description="Backup database to S3.",
 ) as dag:
+    """
+    DAG to backup a PostgreSQL database to S3.
+
+    This DAG performs the following steps:
+    1. Backs up the PostgreSQL database to a local file.
+    2. Uploads the backup file to an S3 bucket.
+    3. Removes the local backup file.
+
+    The backup is performed using the `pg_dump` command, and the S3 upload is done using the Boto3 library.
+
+    Environment variables required:
+    - DAY_OFFSET: Offset to match a weekday for a decent size dataset.
+    - S3_AWS_ACCESS_KEY_ID: AWS access key ID for S3.
+    - S3_AWS_SECRET_ACCESS_KEY: AWS secret access key for S3.
+    - S3_REGION_NAME: AWS region name for S3.
+    - POSTGRES_PASSWORD: Password for the PostgreSQL database.
+    - POSTGRES_USER: Username for the PostgreSQL database.
+    - POSTGRES_SERVER: Hostname or IP address of the PostgreSQL server.
+    - POSTGRES_PORT: Port number of the PostgreSQL server.
+    - POSTGRES_DB: Name of the PostgreSQL database.
+
+    The backup file is named in the format `db_backup_<date>.sql`, where `<date>` is the current date in the format YYMMDD.
+
+    The S3 bucket name is set to "sam-postgres-backups".
+
+    The DAG is scheduled to run once and is paused upon creation.
+
+    """
+
     backup_database = BashOperator(
         task_id="backup_database",
         bash_command=(
