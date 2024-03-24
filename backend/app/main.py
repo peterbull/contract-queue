@@ -2,6 +2,7 @@ import os
 from typing import List
 
 import numpy as np
+import pandas as pd
 from app.db.database import (
     add_naics_code_table,
     create_tables,
@@ -21,7 +22,7 @@ from app.models.schema import (
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI, OpenAI
-from sqlalchemy import select
+from sqlalchemy import and_, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -122,6 +123,7 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     Returns:
         Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]: A tuple containing two lists:
             - The first list contains dictionaries representing the search results, with the following keys:
+                - "notice_id": the sam.gov id of the notice
                 - "summary_chunk": The summary chunk.
                 - "summary": The summary.
                 - "title": The notice title.
@@ -144,6 +146,7 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     chunk_ids = [chunk.id for chunk in nearest_chunks]
     stmt = (
         select(
+            Notice.id,
             SummaryChunks.chunk_text,
             ResourceLink.summary,
             Notice.title,
@@ -160,17 +163,18 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     data = result.all()
     mapped_data = [
         {
-            "summary_chunk": item[0],
-            "summary": item[1],
-            "title": item[2],
-            "text": item[3],
-            "uiLink": item[4],
-            "postedDate": item[5].isoformat(),
+            "notice_id": item[0],
+            "summary_chunk": item[1],
+            "summary": item[2],
+            "title": item[3],
+            "text": item[4],
+            "uiLink": item[5],
+            "postedDate": item[6].isoformat(),
         }
         for item in data
     ]
 
-    embeddings = [{"chunk_embedding": item[6].tolist()} for item in data]
+    embeddings = [{"chunk_embedding": item[7].tolist()} for item in data]
 
     return mapped_data, embeddings
 
@@ -187,6 +191,7 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
 
     Returns:
         tuple: A tuple containing two lists. The first list contains dictionaries with the following keys:
+            - "notice_id": the sam.gov id of the notice
             - "summary": The summary of the resource link.
             - "title": The title of the notice.
             - "text": The text of the resource link.
@@ -208,6 +213,7 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     link_ids = [link.id for link in nearest_links]
     stmt = (
         select(
+            Notice.id,
             ResourceLink.summary,
             Notice.title,
             ResourceLink.text,
@@ -222,18 +228,39 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     data = result.all()
     mapped_data = [
         {
-            "summary": item[0],
-            "title": item[1],
-            "text": item[2],
-            "uiLink": item[3],
-            "postedDate": item[4].isoformat(),
+            "notice_id": item[0],
+            "summary": item[1],
+            "title": item[2],
+            "text": item[3],
+            "uiLink": item[4],
+            "postedDate": item[5].isoformat(),
         }
         for item in data
     ]
 
-    embeddings = [{"summary_embedding": item[5].tolist()} for item in data]
+    embeddings = [{"summary_embedding": item[6].tolist()} for item in data]
 
     return mapped_data, embeddings
+
+
+@app.get("/notices/search/{id}/nearby_summaries")
+async def search_summary_chunks(id: str, db: AsyncSession = Depends(get_async_db)):
+
+    stmt = (
+        select(Notice.id, ResourceLink.summary_embedding, SummaryChunks.chunk_embedding)
+        .outerjoin(ResourceLink, Notice.id == ResourceLink.notice_id)
+        .outerjoin(SummaryChunks, SummaryChunks.resource_link_id == ResourceLink.id)
+        .where(not_(SummaryChunks.chunk_embedding.is_(None)))
+        .where(Notice.id == id)
+    )
+    result = await db.execute(stmt)
+    df = pd.DataFrame(result.fetchall(), columns=result.keys())
+    embeddings_array = np.vstack(
+        np.concatenate(df[["summary_embedding", "chunk_embedding"]].values)
+    )
+    mean_embedding = np.mean(embeddings_array, axis=0)
+
+    return None
 
 
 @app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])
