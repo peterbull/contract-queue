@@ -54,11 +54,26 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
+    """
+    Health check root endpoint of the application.
+
+    Returns:
+        dict: A dictionary with a greeting message.
+    """
     return {"Hello": "Claudio", "Hi There": "Rosie"}
 
 
 @app.get("/naicscodes")
 async def get_all_naics_codes(db: AsyncSession = Depends(get_async_db)):
+    """
+    Retrieve all NAICS codes from the database.
+
+    Parameters:
+    - db: AsyncSession - The database session.
+
+    Returns:
+    - List[str]: A list of all NAICS codes.
+    """
     stmt = select(Notice).distinct()
     result = await db.execute(stmt)
     naics_codes = result.scalars().all()
@@ -67,6 +82,19 @@ async def get_all_naics_codes(db: AsyncSession = Depends(get_async_db)):
 
 @app.get("/naicscodes/search")
 async def search_naics_codes(query: str, db: AsyncSession = Depends(get_async_db)):
+    """
+    Search for related NAICS codes based on a query string. Query is converted to an embedding
+    via an API call to OpenAI.
+
+    Args:
+        query (str): The query string to search for.
+        db (AsyncSession, optional): The asynchronous database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        Tuple[List[NaicsCodeSimple], List[NaicsCodeEmbedding]]: A tuple containing two lists:
+            - data: A list of NaicsCodeSimple objects representing the search results.
+            - embeddings: A list of NaicsCodeEmbedding objects representing the embeddings of the search results.
+    """
     res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
     query_embed = res.data[0].embedding
     stmt = (
@@ -81,18 +109,28 @@ async def search_naics_codes(query: str, db: AsyncSession = Depends(get_async_db
     return data, embeddings
 
 
-@app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])
-async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends(get_async_db)):
-    stmt = select(Notice).where(Notice.naicsCode.has(naicsCode=naics_code))
-    result = await db.execute(stmt)
-    notices = result.scalars().all()
-    if not notices:
-        raise HTTPException(status_code=404, detail="No notices found")
-    return [NoticeBase.model_validate(notice) for notice in notices]
-
-
 @app.get("/notices/search/summary_chunks")
 async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
+    """
+    Search for summary chunks based on a query and return the results. Query is converted to an embedding
+    via an API call to OpenAI.
+
+    Args:
+        query (str): The search query.
+        db (AsyncSession, optional): The asynchronous database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]: A tuple containing two lists:
+            - The first list contains dictionaries representing the search results, with the following keys:
+                - "summary_chunk": The summary chunk.
+                - "summary": The summary.
+                - "title": The notice title.
+                - "text": The resource link text.
+                - "uiLink": The notice UI link.
+                - "postedDate": The posted date in ISO format.
+            - The second list contains dictionaries representing the embeddings of the summary chunks, with the following key:
+                - "chunk_embedding": The embedding of the summary chunk as a list.
+    """
     res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
     query_embed = res.data[0].embedding
     stmt = (
@@ -139,6 +177,24 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
 
 @app.get("/notices/search/summary")
 async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
+    """
+    Search for summary chunks based on a query. Query is converted to an embedding
+    via an API call to OpenAI.
+
+    Args:
+        query (str): The search query.
+        db (AsyncSession, optional): The async database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        tuple: A tuple containing two lists. The first list contains dictionaries with the following keys:
+            - "summary": The summary of the resource link.
+            - "title": The title of the notice.
+            - "text": The text of the resource link.
+            - "uiLink": The UI link of the notice.
+            - "postedDate": The posted date of the notice in ISO format.
+        The second list contains dictionaries with the following key:
+            - "summary_embedding": The summary embedding of the resource link as a list.
+    """
     res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
     query_embed = res.data[0].embedding
     stmt = (
@@ -178,3 +234,13 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     embeddings = [{"summary_embedding": item[5].tolist()} for item in data]
 
     return mapped_data, embeddings
+
+
+@app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])
+async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends(get_async_db)):
+    stmt = select(Notice).where(Notice.naicsCode.has(naicsCode=naics_code))
+    result = await db.execute(stmt)
+    notices = result.scalars().all()
+    if not notices:
+        raise HTTPException(status_code=404, detail="No notices found")
+    return [NoticeBase.model_validate(notice) for notice in notices]

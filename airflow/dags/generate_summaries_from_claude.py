@@ -45,7 +45,7 @@ prior_date = pendulum.now().subtract(days=day_offset).strftime("%Y-%m-%d")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 client = anthropic.Anthropic()
 bs = 300  # Number of resource links to summarize -- Set to `None` to run all items
-max_input_tokens = 10000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
+max_input_tokens = 15000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
 max_output_tokens = 1000
 model = "claude-3-haiku-20240307"
 temperature = 0.0
