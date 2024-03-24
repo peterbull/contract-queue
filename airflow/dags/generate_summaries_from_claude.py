@@ -142,6 +142,16 @@ def generate_summaries_from_claude():
         temperature: float = 0.0,
         model: str = "claude-3-haiku-20240307",
     ):
+        """
+        Summarizes the given document texts using the Claude text summarization model.
+
+        Args:
+            client (anthropic.Anthropic): The Anthropic client object used to interact with the API.
+            doc_texts (list[dict]): A list of document texts to be summarized. Each document text should be a dictionary with an "id" key and a "content" key.
+            max_output_tokens (int, optional): The maximum number of tokens in the generated summary. Defaults to 1000.
+            temperature (float, optional): The temperature parameter for controlling the randomness of the generated text. Defaults to 0.0.
+            model (str, optional): The name of the Claude model to use for text summarization. Defaults to "claude-3-haiku-20240307".
+        """
         with SessionLocal() as db:
             for doc_text in tqdm(doc_texts):
                 try:
@@ -192,6 +202,16 @@ def generate_summaries_from_claude():
 
     @task()
     def backup_summaries_to_s3(bucket_name: str = bucket_name, prior_date: str = prior_date):
+        """
+        Backs up summaries to an S3 bucket.
+
+        Args:
+            bucket_name (str): The name of the S3 bucket.
+            prior_date (str): The prior date for filtering the summaries.
+
+        Returns:
+            bool: True if the backup is successful, False otherwise.
+        """
         with SessionLocal() as db:
             stmt = (
                 select(ResourceLink.notice_id, ResourceLink.summary)
