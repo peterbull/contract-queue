@@ -32,6 +32,8 @@ st.markdown("- [Search for NAICS Codes](#search-for-naics-codes)")
 st.markdown(
     "- [Search Notices by Summary or Chunked Summary](#search-notices-by-summary-or-chunked-summary)"
 )
+st.markdown("- [Find Notices from Mean Embeddings](#find-notices-from-mean-embeddings)")
+st.markdown("- [Find Similar Notices from Notice ID](#find-similar-notices-from-notice-id)")
 st.divider()
 
 
@@ -240,6 +242,9 @@ if "df_summary" in st.session_state:
 
 st.divider()
 st.header("Find Notices from Mean Embeddings")
+st.markdown(
+    "The summary and chunks `embeddings` can be concatenated and vertically stacked to get a mean embedding for each notice. "
+)
 
 mean_embed_query = st.text_input("Enter any keywords or query:", "Roofing repair for small company")
 
@@ -281,7 +286,10 @@ if "df_summary_mean_embeds" in st.session_state:
 
 
 st.divider()
-st.header("Find Similar Notices from Notice I.D.")
+st.header("Find Similar Notices from Notice ID")
+st.markdown(
+    "Now that the `notices` table has it's own embeddings from the mean mentioned above, we can look for similar notices to a given notice."
+)
 
 notice_id_query = st.text_input(
     "Enter a Notice I.D. from one of the tables above:", "4fd8b2bcb07447889cf8f2bef9b5d07b"
