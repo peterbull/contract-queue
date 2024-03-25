@@ -134,3 +134,6 @@ class NoticeTable(BaseModel):
 
     id: Optional[str]
     title: Optional[str]
+    naicsCodes: Optional[List[str]]
+    uiLink: Optional[str]
+    postedDate: Optional[datetime]

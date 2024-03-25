@@ -255,7 +255,9 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
         .subquery()
     )
     stmt_alias = alias(stmt, "stmt_alias")
-    notice_stmt = select(Notice.id, Notice.title).where(Notice.id == stmt_alias.c.notice_id)
+    notice_stmt = select(
+        Notice.id, Notice.title, Notice.naicsCodes, Notice.uiLink, Notice.postedDate
+    ).where(Notice.id == stmt_alias.c.notice_id)
     results = await db.execute(notice_stmt)
     data = results.all()
     nearest_links = [NoticeTable.model_validate(item) for item in data]
@@ -283,7 +285,9 @@ async def search_summary_chunks(id: str, db: AsyncSession = Depends(get_async_db
         .subquery()
     )
     stmt_alias = alias(stmt, "stmt_alias")
-    notice_stmt = select(Notice.id, Notice.title).where(Notice.id == stmt_alias.c.notice_id)
+    notice_stmt = select(
+        Notice.id, Notice.title, Notice.naicsCodes, Notice.uiLink, Notice.postedDate
+    ).where(Notice.id == stmt_alias.c.notice_id)
     results = await db.execute(notice_stmt)
     data = results.all()
     nearest_links = [NoticeTable.model_validate(item) for item in data]
