@@ -260,7 +260,15 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     data = results.all()
     nearest_links = [NoticeTable.model_validate(item) for item in data]
 
-    return nearest_links
+    stmt = (
+        select(MeanEmbeddings.mean_embedding)
+        .order_by(MeanEmbeddings.mean_embedding.cosine_distance(query_embed))
+        .limit(20)
+    )
+    results = await db.execute(stmt)
+    data = results.scalars().all()
+    embeddings = [{"mean_embedding": item.tolist()} for item in data]
+    return nearest_links, embeddings
 
 
 @app.get("/notices/search/{id}/nearby_summaries")

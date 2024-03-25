@@ -9,7 +9,6 @@ import pendulum
 from airflow.decorators import dag, task
 from airflow.operators.bash import BashOperator
 from app.models.models import MeanEmbeddings, Notice, ResourceLink, SummaryChunks
-from app.models.schema import MeanEmbeddingBase, NoticeBase, ResourceLinkBase, SummaryChunksBase
 from sqlalchemy import and_, create_engine, exists, insert, not_, select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker

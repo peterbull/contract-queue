@@ -256,15 +256,28 @@ if st.button("Search Mean Embeddings"):
             data,
             embeddings,
             notice_query,
-            embedding_key="summary_embedding",
+            embedding_key="mean_embedding",
             title_key="title",
-            similarity_threshold=0.5,
+            similarity_threshold=0.3,
         )
-        st.session_state["fig_summary_nearby"] = fig
+        st.session_state["fig_summary_mean_embeds"] = fig
         df = pd.DataFrame(data)
-        st.session_state["df_summary_nearby"] = df
+        st.session_state["df_summary_mean_embeds"] = df
     else:
         st.write(f"Error: {res.status_code}")
+
+
+if "fig_summary_mean_embeds" in st.session_state:
+    st.plotly_chart(st.session_state["fig_summary_mean_embeds"])
+
+if "df_summary_mean_embeds" in st.session_state:
+    df = st.session_state["df_summary_mean_embeds"]
+    query = st.text_input("Filter summary dataframe")
+    if query:
+        query = query.lower()
+        mask = df.applymap(lambda x: query in str(x).lower()).any(axis=1)
+        df = df[mask]
+    st.dataframe(df, hide_index=True)
 
 
 st.divider()
