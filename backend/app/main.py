@@ -273,7 +273,30 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
 
 @app.get("/notices/search/{id}/nearby_summaries")
 async def search_summary_chunks(id: str, db: AsyncSession = Depends(get_async_db)):
-    pass
+    stmt = select(MeanEmbeddings.mean_embedding).where(MeanEmbeddings.notice_id == id)
+    result = await db.execute(stmt)
+    query_embed = result.scalar_one()
+    stmt = (
+        select(MeanEmbeddings)
+        .order_by(MeanEmbeddings.mean_embedding.cosine_distance(query_embed))
+        .limit(20)
+        .subquery()
+    )
+    stmt_alias = alias(stmt, "stmt_alias")
+    notice_stmt = select(Notice.id, Notice.title).where(Notice.id == stmt_alias.c.notice_id)
+    results = await db.execute(notice_stmt)
+    data = results.all()
+    nearest_links = [NoticeTable.model_validate(item) for item in data]
+
+    stmt = (
+        select(MeanEmbeddings.mean_embedding)
+        .order_by(MeanEmbeddings.mean_embedding.cosine_distance(query_embed))
+        .limit(20)
+    )
+    results = await db.execute(stmt)
+    data = results.scalars().all()
+    embeddings = [{"mean_embedding": item.tolist()} for item in data]
+    return nearest_links, embeddings
 
 
 @app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])

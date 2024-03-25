@@ -29,6 +29,7 @@ def create_network_graph(
             if similarity_matrix[i, j] > similarity_threshold:
                 G.add_edge(i, j)
 
+    # Spring layout uses Fruchterman-Reingold force-directed algorithm by default
     pos = nx.spring_layout(G)
 
     # Add edges

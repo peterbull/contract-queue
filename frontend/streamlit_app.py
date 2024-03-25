@@ -272,7 +272,7 @@ if "fig_summary_mean_embeds" in st.session_state:
 
 if "df_summary_mean_embeds" in st.session_state:
     df = st.session_state["df_summary_mean_embeds"]
-    query = st.text_input("Filter summary dataframe")
+    query = st.text_input("Filter mean dataframe")
     if query:
         query = query.lower()
         mask = df.applymap(lambda x: query in str(x).lower()).any(axis=1)
@@ -286,11 +286,10 @@ st.header("Find Similar Notices from Notice I.D.")
 notice_id_query = st.text_input(
     "Enter a Notice I.D. from one of the tables above:", "4fd8b2bcb07447889cf8f2bef9b5d07b"
 )
-if st.button("Search Notices"):
+if st.button("Search Notices By I.D."):
 
     res = requests.get(
-        f"{STREAMLIT_APP_BACKEND_URL}/notices/search/{id}/nearby_summaries",
-        params={"query": notice_id_query},
+        f"{STREAMLIT_APP_BACKEND_URL}/notices/search/{notice_id_query}/nearby_summaries"
     )
 
     if res.status_code == 200:
@@ -299,12 +298,24 @@ if st.button("Search Notices"):
             data,
             embeddings,
             notice_query,
-            embedding_key="summary_embedding",
+            embedding_key="mean_embedding",
             title_key="title",
-            similarity_threshold=0.5,
+            similarity_threshold=0.3,
         )
-        st.session_state["fig_summary_nearby"] = fig
+        st.session_state["fig_nearby_mean_embeds"] = fig
         df = pd.DataFrame(data)
-        st.session_state["df_summary_nearby"] = df
+        st.session_state["df_nearby_mean_embeds"] = df
     else:
         st.write(f"Error: {res.status_code}")
+
+if "fig_nearby_mean_embeds" in st.session_state:
+    st.plotly_chart(st.session_state["fig_nearby_mean_embeds"])
+
+if "df_nearby_mean_embeds" in st.session_state:
+    df = st.session_state["df_nearby_mean_embeds"]
+    query = st.text_input("Filter nearby dataframe")
+    if query:
+        query = query.lower()
+        mask = df.applymap(lambda x: query in str(x).lower()).any(axis=1)
+        df = df[mask]
+    st.dataframe(df, hide_index=True)
