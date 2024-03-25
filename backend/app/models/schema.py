@@ -129,9 +129,8 @@ class NoticeBase(BaseModel):
     resource_links: Optional[List[ResourceLinkBase]]
 
 
-class MeanEmbeddingBase(BaseModel):
+class NoticeTable(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: Optional[int]
-    mean_embedding: Optional[List[float]]
-    notice_id: Optional[str]
+    id: Optional[str]
+    title: Optional[str]
