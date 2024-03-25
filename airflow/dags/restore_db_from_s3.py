@@ -54,7 +54,7 @@ def restore_db_from_s3():
     day_offset = int(os.environ.get("DAY_OFFSET"))
 
     # Database Backup
-    db_date = "240320"
+    db_date = "240325"
     file_name = f"db_backup_{db_date}.sql"
     db_file_path = f"~/{file_name}"
 
