@@ -10,19 +10,20 @@ from app.db.database import (
     get_async_db,
     get_db,
 )
-from app.models.models import NaicsCodes, Notice, ResourceLink, SummaryChunks
+from app.models.models import MeanEmbeddings, NaicsCodes, Notice, ResourceLink, SummaryChunks
 from app.models.schema import (
     NaicsCodeBase,
     NaicsCodeEmbedding,
     NaicsCodeSimple,
     NoticeBase,
+    NoticeTable,
     ResourceLinkSimple,
     SummaryChunksSimple,
 )
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI, OpenAI
-from sqlalchemy import and_, not_, select
+from sqlalchemy import alias, and_, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -243,24 +244,28 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
     return mapped_data, embeddings
 
 
+@app.get("/notices/search/mean_notices")
+async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
+    res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
+    query_embed = res.data[0].embedding
+    stmt = (
+        select(MeanEmbeddings.notice_id)
+        .order_by(MeanEmbeddings.mean_embedding.cosine_distance(query_embed))
+        .limit(20)
+        .subquery()
+    )
+    stmt_alias = alias(stmt, "stmt_alias")
+    notice_stmt = select(Notice.id, Notice.title).where(Notice.id == stmt_alias.c.notice_id)
+    results = await db.execute(notice_stmt)
+    data = results.all()
+    nearest_links = [NoticeTable.model_validate(item) for item in data]
+
+    return nearest_links
+
+
 @app.get("/notices/search/{id}/nearby_summaries")
 async def search_summary_chunks(id: str, db: AsyncSession = Depends(get_async_db)):
-
-    stmt = (
-        select(Notice.id, ResourceLink.summary_embedding, SummaryChunks.chunk_embedding)
-        .outerjoin(ResourceLink, Notice.id == ResourceLink.notice_id)
-        .outerjoin(SummaryChunks, SummaryChunks.resource_link_id == ResourceLink.id)
-        .where(not_(SummaryChunks.chunk_embedding.is_(None)))
-        .where(Notice.id == id)
-    )
-    result = await db.execute(stmt)
-    df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    embeddings_array = np.vstack(
-        np.concatenate(df[["summary_embedding", "chunk_embedding"]].values)
-    )
-    mean_embedding = np.mean(embeddings_array, axis=0)
-
-    return None
+    pass
 
 
 @app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])

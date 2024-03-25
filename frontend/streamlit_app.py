@@ -237,3 +237,61 @@ if "df_summary" in st.session_state:
         mask = df.applymap(lambda x: query in str(x).lower()).any(axis=1)
         df = df[mask]
     st.dataframe(df, hide_index=True)
+
+st.divider()
+st.header("Find Notices from Mean Embeddings")
+
+mean_embed_query = st.text_input("Enter any keywords or query:", "Roofing repair for small company")
+
+if st.button("Search Mean Embeddings"):
+
+    res = requests.get(
+        f"{STREAMLIT_APP_BACKEND_URL}/notices/search/mean_notices",
+        params={"query": mean_embed_query},
+    )
+
+    if res.status_code == 200:
+        data, embeddings = res.json()
+        fig = create_network_graph(
+            data,
+            embeddings,
+            notice_query,
+            embedding_key="summary_embedding",
+            title_key="title",
+            similarity_threshold=0.5,
+        )
+        st.session_state["fig_summary_nearby"] = fig
+        df = pd.DataFrame(data)
+        st.session_state["df_summary_nearby"] = df
+    else:
+        st.write(f"Error: {res.status_code}")
+
+
+st.divider()
+st.header("Find Similar Notices from Notice I.D.")
+
+notice_id_query = st.text_input(
+    "Enter a Notice I.D. from one of the tables above:", "4fd8b2bcb07447889cf8f2bef9b5d07b"
+)
+if st.button("Search Notices"):
+
+    res = requests.get(
+        f"{STREAMLIT_APP_BACKEND_URL}/notices/search/{id}/nearby_summaries",
+        params={"query": notice_id_query},
+    )
+
+    if res.status_code == 200:
+        data, embeddings = res.json()
+        fig = create_network_graph(
+            data,
+            embeddings,
+            notice_query,
+            embedding_key="summary_embedding",
+            title_key="title",
+            similarity_threshold=0.5,
+        )
+        st.session_state["fig_summary_nearby"] = fig
+        df = pd.DataFrame(data)
+        st.session_state["df_summary_nearby"] = df
+    else:
+        st.write(f"Error: {res.status_code}")
