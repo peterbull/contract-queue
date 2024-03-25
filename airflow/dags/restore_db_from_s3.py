@@ -115,6 +115,7 @@ def restore_db_from_s3():
             "points_of_contact",
             "resource_links",
             "summary_chunks",
+            "mean_embeddings",
         ]
 
         drop_tables = BashOperator(
