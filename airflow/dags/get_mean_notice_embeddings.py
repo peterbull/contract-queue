@@ -66,10 +66,13 @@ def get_mean_notice_embeddings():
                 )
                 mean_embedding = np.mean(embeddings_array, axis=0)
 
-                mean_embedding_instance = MeanEmbeddings(
-                    notice_id=notice_id, mean_embedding=mean_embedding.tolist()
-                )
-                db.merge(mean_embedding_instance)
+                exists_stmt = select(exists().where(MeanEmbeddings.notice_id == notice_id))
+                result = db.execute(exists_stmt)
+                if not result.scalar():
+                    mean_embedding_instance = MeanEmbeddings(
+                        notice_id=notice_id, mean_embedding=mean_embedding.tolist()
+                    )
+                    db.merge(mean_embedding_instance)
             db.commit()
 
     mean_embeds = get_mean_embeddings_for_notices()
