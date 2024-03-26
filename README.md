@@ -1,4 +1,4 @@
-![alt text](assets/imgs/contractqueue.jpg)
+![alt text](assets/imgs/cqueue.jpg)
 
 # Contract Queue
 
