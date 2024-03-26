@@ -45,7 +45,7 @@ prior_date = pendulum.now().subtract(days=day_offset).strftime("%Y-%m-%d")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 client = anthropic.Anthropic()
 bs = 300  # Number of resource links to summarize -- Set to `None` to run all items
-max_input_tokens = 20000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
+max_input_tokens = 25000  # This number has to be very low right now, Anthropic API caps out at 1,000,000 tokens daily for the lowest tier currently
 max_output_tokens = 1000
 model = "claude-3-haiku-20240307"
 temperature = 0.0
@@ -58,7 +58,7 @@ system = """
     like detailed specifications, qualification criteria, submission deadlines, financial terms, performance standards, 
     and conditions related to business size and certifications. Responses must be divided into clear, semantically dense 
     chunks, separated by two newlines, ready for inclusion in a vector database for streamlined access and analysis.
-    This document may not be a soliciation. If the document is not a solicitation, please continue to provide 
+    This document may not be a solicitation. If the document is not a solicitation, please continue to provide 
     a summary of relevant information, but do not analyze it in the same manner as a procurement request. 
 
     Instructions:
