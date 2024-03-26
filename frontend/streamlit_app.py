@@ -18,6 +18,13 @@ STREAMLIT_APP_BACKEND_URL = os.environ.get("STREAMLIT_APP_BACKEND_URL")
 st.image("imgs/contract-queue.webp", width=400)
 st.title("Contract Queue")
 st.markdown("## An app for exploring government procurement data with semantic search")
+st.markdown(
+    """
+    <a href="https://github.com/peterbull/contract-queue">Github Repo
+    </a>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown("***")
 
 # Nav
