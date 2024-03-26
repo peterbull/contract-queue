@@ -1,3 +1,5 @@
+![alt text](assets/imgs/contractqueue.jpg)
+
 # Contract Queue
 
 RFP(Request for Proposal) notice recommendation webapp using vector stores, LLMs, and airflow.
