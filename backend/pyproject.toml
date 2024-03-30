@@ -47,6 +47,7 @@ pytest-asyncio = "^0.23.6"
 llama-index = "^0.10.25"
 arize-phoenix = {extras = ["evals"], version = "^3.19.3"}
 protobuf = "<4.0"
+langfuse = "^2.21.1"
 
 [build-system]
 requires = ["poetry-core"]
