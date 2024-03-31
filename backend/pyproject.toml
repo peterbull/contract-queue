@@ -33,7 +33,7 @@ pyarrow = "^15.0.1"
 fastparquet = "^2024.2.0"
 asyncpg = "^0.29.0"
 tqdm = "^4.66.2"
-anthropic = "^0.19.2"
+anthropic = ">=0.20.0"
 poetry-plugin-export = "^1.6.0"
 rich = "^13.7.1"
 pyspark = "^3.5.1"
@@ -45,9 +45,9 @@ nbformat = "^5.10.3"
 trio = "^0.25.0"
 pytest-asyncio = "^0.23.6"
 llama-index = "^0.10.25"
-arize-phoenix = {extras = ["evals"], version = "^3.19.3"}
-protobuf = "<4.0"
+protobuf = ">=4.0"
 langfuse = "^2.21.1"
+llama-index-llms-anthropic = "^0.1.7"
 
 [build-system]
 requires = ["poetry-core"]
