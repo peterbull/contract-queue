@@ -181,9 +181,9 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
 
 
 @app.get("/notices/search/summary")
-async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
+async def search_summary(query: str, db: AsyncSession = Depends(get_async_db)):
     """
-    Search for summary chunks based on a query. Query is converted to an embedding
+    Search for summary based on a query. Query is converted to an embedding
     via an API call to OpenAI.
 
     Args:
@@ -245,7 +245,20 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
 
 
 @app.get("/notices/search/mean_notices")
-async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async_db)):
+async def search_mean_embeddings(query: str, db: AsyncSession = Depends(get_async_db)):
+    """
+    Search for nearest notices by mean embeddings of summary chunk embeddings and summary embeddings
+
+    Args:
+        query (str): The search query.
+        db (AsyncSession, optional): The asynchronous database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]: A tuple containing two lists:
+            - nearest_links: A list of dictionaries representing nearest notice links.
+            - embeddings: A list of dictionaries representing embeddings.
+
+    """
     res = await async_client.embeddings.create(input=query, model="text-embedding-3-small")
     query_embed = res.data[0].embedding
     stmt = (
@@ -275,6 +288,18 @@ async def search_summary_chunks(query: str, db: AsyncSession = Depends(get_async
 
 @app.get("/notices/search/{id}/nearby_summaries")
 async def search_summary_chunks(id: str, db: AsyncSession = Depends(get_async_db)):
+    """
+    Search for nearby summaries based on the given ID.
+
+    Args:
+        id (str): The ID used for searching nearby summaries.
+        db (AsyncSession, optional): The async database session. Defaults to Depends(get_async_db).
+
+    Returns:
+        Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]: A tuple containing two lists:
+            - nearest_links: A list of dictionaries representing the nearest links found.
+            - embeddings: A list of dictionaries representing the embeddings.
+    """
     stmt = select(MeanEmbeddings.mean_embedding).where(MeanEmbeddings.notice_id == id)
     result = await db.execute(stmt)
     query_embed = result.scalar_one()
@@ -305,6 +330,19 @@ async def search_summary_chunks(id: str, db: AsyncSession = Depends(get_async_db
 
 @app.get("/notices/naicscode/{naics_code}", response_model=List[NoticeBase])
 async def read_notices_by_naics_code(naics_code: int, db: AsyncSession = Depends(get_async_db)):
+    """
+    Retrieve a list of notices by NAICS code.
+
+    Parameters:
+    - naics_code (int): The NAICS code to filter the notices by.
+    - db (AsyncSession, optional): The database session. Defaults to the session obtained from `get_async_db` dependency.
+
+    Returns:
+    - List[NoticeBase]: A list of notices filtered by the provided NAICS code.
+
+    Raises:
+    - HTTPException: If no notices are found for the given NAICS code (status code 404).
+    """
     stmt = select(Notice).where(Notice.naicsCode.has(naicsCode=naics_code))
     result = await db.execute(stmt)
     notices = result.scalars().all()
