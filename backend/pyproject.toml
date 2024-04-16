@@ -48,6 +48,7 @@ llama-index = "^0.10.25"
 protobuf = ">=4.0"
 langfuse = "^2.21.1"
 llama-index-llms-anthropic = "^0.1.7"
+chromadb = "^0.4.24"
 
 [build-system]
 requires = ["poetry-core"]
