@@ -1,0 +1,5 @@
+# %%
+print("inline")
+# %%
+print("test")
+# %%
